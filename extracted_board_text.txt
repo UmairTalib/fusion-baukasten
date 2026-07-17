@@ -1,0 +1,794 @@
+Projekt  Management  Dashboard  
+Core  FlowManagement
+Nutzer  Dashboard
+WerkzeugkastenReporting  und  Ergebnisse
+Der  KI - Agent  führt  die  Nutzer : innen  nicht  über  statische  
+Eingabemasken ,  sondern  über  dynamisch  generierte  Fragen  durch  
+die  einzelnen  Themenblöcke .
+
+das  heißt ,  das  Design  fühlt  wie  ein   geführter  Dialog  mit  KI -
+generierten  Fragekarten .
+Phase  1
+Kommunikationszentrum
+Dashboard  manager
+Data  und  Organisation
+Dashboard  teammitgleider  
+gemeinsam  arbeiten  an  einem  Projekt
+Projekt  Management  ( Zusätzliche  Dienstleistungen  )
+Projektzeitplan
+Projektzeitplan  &  Kalender
+Hier  wird  aus  der  statischen  Planung  ein  
+lebendiges  Dokument .
+Datenbank ?  Ja .
+Wir  brauchen  eine  Tabelle  für  Termine .  Wichtig  für  
+die  Forschung :  Werden  Deadlines  oft  
+verschoben ?  Der  Programmierer  sollte  ein  Feld  
+original _ date  und  current _ date  einbauen ,  damit  
+wir  sehen  können ,  wie  realistisch  die  KI - Planung  
+im  Vergleich  zur  Praxis  war .
+Adrian  Manes  Perez
+Kalender
+Querschnitstellen
+Personen  zuweisenMilensteineAbhängigkeiten
+Personen  zuweisen  ( Ressourcenmanagement )
+Hier  werden  Aufgaben  an  E - Mail - Adressen  
+gekoppelt .
+Datenbank ?  Ja .
+Das  System  muss  Aufgaben  mit  externen  E - Mail -
+Adressen  verknüpfen  können .  Für  die  Kuration  ist  
+entscheidend :  Wir  müssen  tracken ,  wie  viele  
+' externe '  Personen  ( die  nicht  im  System  registriert  
+sind )  in  den  Prozess  geholt  werden .  Das  ist  ein  
+wichtiger  Indikator  für  die  Reichweite  der  
+Partizipation .
+Adrian  Manes  Perez
+Querschnittstellen  ( Nachhaltigkeit  &  XYZ )
+Das  sind  die  „ Checkpoints “  für  übergeordnete  
+Ziele .
+Datenbank ?  Ja .
+Diese  Felder  dienen  dazu ,  das  Projekt  gegen  
+globale  Ziele  ( wie  Nachhaltigkeit )  zu  prüfen .  Wir  
+brauchen  hier  Boolean - Felder  ( Ja / Nein )  oder  
+kurze  Textfelder ,  um  zu  dokumentieren ,  ob  und  
+wie  diese  Querschnittsthemen  im  
+Projektmanagement  berücksichtigt  wurden .
+Adrian  Manes  Perez
+Aufgabenmanagement
+InklusivitätNachhaltigkeitTransparenz
+Projekt  Aufgaben  
+bestimmen
+Task  erstellen /  bearbeiten  
+oder  löschen
+Task  Inhalt :   
+titel  ,  beschreibung  ,  priorität  ( Hoch  ode  
+rniedrig ) ,   Deadline  und  status  quo
+Zuweisung  und  Verantwortlichung :   
+wer  ist  verantwortlich  und  wer  
+arbeitet  mit  ?
+Abhängigkeiten :  Task  A  muss  fertig  
+sein  →  bevor  Task  B  startet
+Ownercontributor
+Benachrichtigungen  &  Updates
+neue  Aufgaben  oder  
+ÄnderungenNeue  Dealines
+Onboarding  starten  ( dauerhaft  möglich )
+ein  neues  Konto  überführen   
+( Falls  nutzer  aus  dem  Gast  Modus  gerne  mal  sich  später  einloggen  möchten  )
+Inbox  &  Benachrichtigungen
+Das  Kommunikationszentrum  des  Projekts .
+Datenbank ?  Ja .
+Hier  werden  alle  Statusänderungen  geloggt .  Der  
+Programmierer  muss  sicherstellen ,  dass  jede  
+' Aktion '  ( z . B .  Aufgabe  erledigt )  einen  Eintrag  in  der  
+Inbox  erzeugt .  In  der  Datenbank  ist  das  eine  
+klassische  Activity _ Log - Tabelle ,  die  wir  später  für  
+die  Prozessanalyse  nutzen .
+Adrian  Manes  Perez
+Context  Enrichment  Service :   
+Web - Suche
+•  Upload  &  Analyse
+•  Struktur - Extraktion
+•  Projektstruktur - Ableitung 
+projekt  Speichern   
+Ja
+Zwischenstand  teilen
+Feedback  einholen
+Rückmeldungen  integrieren
+Ja
+Beispiel  kein  Passwort  mehr  in  der  Art  und  Weise  
+macht ,
+sondern  sich  direkt  auf  die  Mail  eine
+bestätigungsmail  Code  senden  lassen  kann  halt  auch  
+ohne  Passwort
+Zugang  &  Projektverwaltung
+Wenn  Neu  ,  dann  Direkt  loslegen  
+( Später  erst  Registrierung ,  wenn  
+der  Nutzer  Fortschritte  
+speichern  will )
+Gast - Session  
+erstellen 
+mit  möglichen  
+Anmeldung  ( bald  )
+NeinJa
+Start
+Daten  Schutz  
+Hinweis
+Profile  Laden
+registrierung  oder  einlogen
+EmailPasswort
+Speicherung  Email  und  Passwort
+Data  &  Organisation  Service
+geh  weiter  zur  Dashboard  je  nachdem  ;  Mitarbeiter ,  
+Kunden  oder  Projekt  manager
+Persistence  DB  Speicherung   ( Airtable  /  Firebase )
+Email
+Session - ID
+Projekt - ID 
+gespeichert 
+Load  Profile  &  Org  Context
+Profile  ( Nutzer  /  
+Organisation )
+Templates  
+( Vorlagen )
+Zielgruppen  
+( gespeichert )
+Wiederverwendung  
+von  Daten
+Upload  &  Analyse  
+( Docs ,  PDFs  etc . )
+Nutzer  zieht  sein  Dokument  per  
+drag  &  drop  in  das  Upload - Feld
+Templates  
+( Vorlagen ) ProfileZielgruppenUpload
+Für  verschiedene  Nutzerprofile  werden  Templates  
+erstellt ,  die  auf  den  Nutzer  angepasste  Fragen  stellt  ( ? )
+Basierend  auf  dem  Nutzerprofil  ( Branche ,  Alter ,  
+Problem ,  Kontext )  erstellt  der  KI  Agent  passende  
+FragenVorlage  wählenLogin  /  OnboardingManuell  im  Dialog
+KI - ExtraktionKI  schlägt  
+Template  vor
+Aus  Upload  
+extrahiertRolle  &  Orgtyp
+Template  
+Speichern
+KI - Vorschlagbeeinflusst
+Profil  speichern
+Zielgruppen - Profil  
+gespeichert  ( steuert  
+Methode )
+Buttons  anzeigen
+Speichern  &  in  Projekt  übernehmen  
+Bearbeiten  
+ Löschen  
+→  Ladefortschritt  während  Speicherung
+→  Benachrichtigung :  “ Dokument ( e )  erfolgreich  
+gespeichert → "
+→  Rücksprung  in  Core  Flow  ( an  aktueller  Stelle )
+Bestätigung  &  
+Speicherung
+Ja / Nein
+Gast  &  noch  nicht  registriert
+Button :  
+Jetzt  registrieren  &  speichern
+Abbrechen
+Datenbank ?  Ja .
+Nutzer  sollten  Zielgruppen - Definitionen  ( z .  B .  
+' Senioren  im  Stadtteil  Nord ' )  speichern  können .  In  
+der  Datenbank  brauchen  wir  dafür  eine  eigene  
+Tabelle ,  damit  diese  Definitionen  in  neuen  
+Projekten  einfach  per  Dropdown  geladen  werden  
+können ,  ohne  sie  neu  tippen  zu  müssen .
+Adrian  Manes  Perez
+Datenbank ?  Ja  ( Dateipfade  &  Metadaten ) .
+Wenn  Dokumente  ( PDFs ,  Docs )  hochgeladen  
+werden ,  muss  die  Datenbank  den  Speicherort  und  
+den  Bezug  zum  Projekt / Nutzer  festhalten .  
+Besonders  wichtig  für  die  Kuration :  Das  Feld  
+analysis _ result  sollte  die  extrahierten  Kernpunkte  
+der  KI - Analyse  des  Dokuments  speichern ,  damit  
+diese  später  in  die  Interpretation  einfließen  
+können .
+Adrian  Manes  Perez
+Datenbank ?  Ja .
+Das  System  muss  hier  eine  klare  Hierarchie  
+speichern .  Gehört  der  Nutzer  zu  einer  
+Organisation  ( z .  B .  ' Stadtverwaltung  XY ' ) ?  Wenn  
+ja ,  müssen  Profil - Daten  der  Organisation  für  alle  
+Mitglieder  dieser  Gruppe  verfügbar  sein .  Für  die  
+Forschung  wichtig :  So  können  wir  sehen ,  ob  
+organisationale  Strukturen  die  
+Partizipationsergebnisse  beeinflussen .
+Adrian  Manes  Perez
+Datenbank ?  Ja .
+Wir  brauchen  eine  Bibliothek  von  Templates .  
+Jedes  Template  ist  ein  Datensatz ,  der  
+vordefinierte  Strukturen  für  die  Phasen  1 - 7  
+enthält .  Der  Programmierer  muss  speichern ,  
+welches  Template  als  Basis  für  welches  Projekt  
+gewählt  wurde  ( für  die  statistische  Auswertung ) .
+Adrian  Manes  Perez
+→  Dateiformat - Prüfung  ( PDF ,  DOCX ,  TXT ,  JPG )
+→  Dateigröße - Validierung  ( max .  z . B .  1 0  MB )
+→  Upload - Fortschritt  anzeigen  ( Progress  Bar )
+→  Fehlerbehandlung :  ungültiges  Format  /  zu  groß
+→  Vorschau  der  hochgeladenen  Datei
+→  Weiterleitung  an  KI - Extraktion
+→  Parsing :  Text  aus  Dokument  extrahieren
+→  NLP - Analyse :  Entitäten  erkennen
+Stakeholder  /  Rolle
+Ziele  &  Zweck
+Zeitrahmen  /  Deadlines
+Ressourcen  /  Budget
+Formate  &  Methoden
+→  Extraktionsergebnis  als  editierbare  Vorschau  aufbereiten
+→  Weiterleitung  an  Bestätigung
+→  Ergebnisse  aus  der  KI - Extraktion  
+speichern  &  im  Nutzerprofil  
+speichern
+Verantwortliche  
+Personen  →
+Rollen  definieren :
+Projektmanager
+Teammitglied
+Kunde
+Dashboard :  Personalisierte  Sicht  
+auf  Projektdaten  →  3  Perspektiven  
+auf  dasselbe  System
+Projekt - Status  &  Lebenszyklus  ( Kuration )
+Variable :  Project _ Lifecycle _ Status .
+Ausprägungen :
+Idea _ Draft  ( Nur  für  den  Ersteller  sichtbar ) .
+Active _ Execution  ( KI - Agent  ist  aktiv ) .
+Paused  ( Snapshot  wird  gehalten ,  keine  KI -
+Interaktion ) .
+Archived _ Research  ( Projekt  abgeschlossen ,  
+Daten  fließen  in  Uni - Statistik ) .
+Zusammenhang :  Steuert  die  Sichtbarkeit  im  
+Dashboard  und  die  Berechtigung  für  den  KI -
+Agenten .
+Adrian  Manes  Perez
+Completetd
+Projekt  Overview 
+Fortschritt  (  %  )
+Fortschritt  ( % )
+Deadlines
+Status  ( nicht  nur  „ in  
+Planung “ )
+Verbesserung :  " IT - Logik :  Fortschrittsberechnung  
+( Summe  erledigter  Tasks  /  Gesamtzahl  Tasks ) " .  
+Klare  Anweisung  für  den  Programmierer .
+Adrian  Manes  Perez
+Statistiken
+Fortschritts - Indikatoren  ( Wissensquelle )
+Variable :  Completion _ Metric .
+Ausprägungen :
+Task _ Based  ( Linearer  Fortschritt  nach  
+Checkliste ) .
+Outcome _ Based  ( Fortschritt  nach  
+erreichten  Meilensteinen ) .
+Wissenslogik :  Das  System  zieht  für  die  
+Dashboard - Statistik  nicht  nur  " Daten " ,  sondern  
+bewertet  die  Qualität  des  Projektfortschritts  
+für  das  Reporting .
+Adrian  Manes  Perez
+Anzahl  Projekte  Pro  
+Monat
+Statusübersicht  (   aktiv ,   
+oder  abgeschlossen )
+Abschlussrate  ( % )
+ Durchschnittliche  
+DauerEngpässe  /  Blocker
+Preview - Kommunikationszentrum
+neue  Nachrichten
+offene  Antworten
+wichtige  Gespräche
+Nächste  Schrit 
+get  Started
+Learn  basics  of  
+Chatbot  with  
+minutes
+To  -  DosPrioritätenHelp  Center
+Neuer  Text :  " IT - Logik :  Trigger  für  neuen  
+Datensatz .  Erzeugt  eindeutige  Projekt - ID  
+verknüpft  mit  User - ID . "
+Adrian  Manes  Perez
+Projekt - Dashboard :  Projekte  verwalten  und  verfolgen :  Kunden  DashboardProjekt  manager  Dashboard
+Projektmanager  Dashboard  ( Steuerungsebene )
+Ziel :   Überblick  +  Kontrolle  +  Entscheidungen  
+treffen
+Projektübersicht
+Alle  Projekte  ( Liste / Kacheln )
+Status  ( in  Planung ,  aktiv ,  
+abgeschlossen )
+Fortschritt  ( % )
+KPIs  /  Statistiken
+Anzahl  aktiver  Projekte
+Projekte  pro  Monat
+Deadlines  ( kritische  
+Projekte )
+Engpässe  /  Risiken
+Aufgaben  &  Steuerung
+Alle  Tasks  im  Projekt
+Wer  arbeitet  woran
+Prioritäten  setzen
+Kommunikation
+Offene  Gespräche
+Kundenkontakte
+Follow - ups  ( „ Wen  muss  ich  
+antworten ? “ )
+Aktionen
+Neues  Projekt  erstellen
+Templates  nutzen
+Reports  generieren
+Preview - Kommunikationszentrum
+neue  Nachrichten
+offene  Antworten
+wichtige  Gespräche
+Team  mitglieder  Dashoard
+Teammitglied  Dashboard  ( Arbeits - Ebene )
+Meine  Aufgaben
+To - Do  Liste
+Prioritäten
+Deadlines
+Tages - / Wochenplanung
+Aufgaben  nach  Zeit  sortiert
+Kalenderansicht
+Projektkontext
+Zugewiesene  Projekte
+kurzer  Status
+Kommunikation
+Nachrichten
+Kommentare  zu  Tasks
+Kommunikation
+Nachrichten
+Kommentare  zu  Tasks
+Preview - Kommunikationszentrum
+neue  Nachrichten
+offene  Antworten
+wichtige  Gespräche
+Welche  Nutzerprofile  gibt  es  
+überhaupt ?
+Welche  Templates  für  welche  
+“ Nutzerprofile ” ?
+→  KI  Agent  greift  auf  die  
+kuratierte  Datenbank  zurück ,  um  
+die  passenden  Fragen  für  die  
+jeweiligen  Nutzerprofile  zu  
+erstellen
+→  wir  brauchen  in  der  
+kuratiertem  Datenbank  einen  
+Bereich  für  jegliche  Nutzerprofile
+→  woher  bzw  wie  stellt  die  KI  
+dann  genau  die  Fragen ?  Kommt  
+sie  selber  darauf  oder  muss  man  
+Fragen  vorgeben ?
+ 7  Blöcke  minimeren  →  
+Nutzerprofil  erstellen ,  anhand  
+dessen  wird  der  Output  durch  
+den  KI  Agenten  generiert  
+→  Welche  Informationen  braucht  
+der  KI  Agent  genau  um  
+passenden  Fragen  zu  
+generieren ?
+
+Bereiche  Nutzerprofil :
+Branche ?
+Alter ?
+Problem ?
+Kontext ?
+Zielgruppe ?  →  
+Vorgehensweisen  zur  
+Bestimmung  &  Definition  von  
+Zielgruppen
+eingeschränkt
+Chat  1 : 1  ( Gruppen )
+Kommunikation  Zentrum  ( Hauptmodul )
+Komplette  VerlauferNachrichten  SchreibenGesprächstatus
+Kommunikations  Bereich
+Voller  zugriffProjektbezogen
+neues  
+Projekt
+JaNein
+Projekt  Anlegenbestehendes   
+Projekt  öffnen
+Projekt  Initialisierung
+Wenn  der  Modus  auf  „ Detailliert “  
+gesetzt  ist ,  werden  die  Fragen  und  
+Vertiefungsfragen  angezeigt .  
+Mehrstufige  Abfragen  ( mehr  
+Kontext ,  bessere  Ergebnisse )
+Projekt  Starten 
+Modus  Wählen   
+Detailed  oder  Expressed
+Datenbank ?  Ja .
+Wir  müssen  pro  Projekt  speichern ,  in  welchem  
+Modus  es  erstellt  wurde .  Das  ist  eine  der  
+wichtigsten  Variablen  für  die  Forschung :  Wählen  
+Leute  lieber  den  schnellen  Weg  ( Express )  oder  
+nehmen  sie  sich  Zeit  ( Detailed ) ?
+Zusatz - Info :  Falls  ein  Nutzer  später  den  Modus  
+wechseln  kann ,  müsste  auch  das  gespeichert  
+werden  ( z . B .  initial _ mode  und  current _ mode ) .
+Adrian  Manes  Perez
+Wenn  Modus  =  „ Express “ ,  
+werden  nur  grundlegende  
+Abfragen  angezeigt . Sofort  in  
+Planung  mit  minimalen  Fragen ,   
+schnell  ein  brauchbares  
+Grundgerüst  erzeugen ,  Danach  
+gezielte  Nachfrage
+Datenbank ?  Ja ,  aber  schlank .
+Hier  werden  nur  die  Kern - Informationen  
+gespeichert .  Wichtig  für  die  Logik :  Das  System  
+muss  markieren ,  dass  hier  Daten  ' fehlen '  oder  
+' optional '  sind ,  die  im  detaillierten  Modus  Pflicht  
+wären .
+Gezielte  Nachfrage :  In  deinem  Diagramm  steht  
+„ Danach  gezielte  Nachfrage “ .  Das  bedeutet  für  die  
+Datenbank :  Wir  brauchen  ein  Feld ,  das  trackt ,  ob  
+diese  Nachfrage  schon  gestellt / beantwortet  
+wurde  ( z . B .  follow _ up _ completed ) .
+Adrian  Manes  Perez
+Datenbank ?  Ja ,  sehr  viele  Felder .
+Hier  brauchen  wir  für  jede  einzelne  
+Vertiefungsfrage  ein  eigenes  Feld .  Der  
+Programmierer  muss  sicherstellen ,  dass  auch  bei  
+einem  Abbruch  die  bereits  ausgefüllten  ' Stufen '  
+gespeichert  werden  ( Zwischenspeicherung ) ,  
+damit  wir  sehen ,  an  welcher  Stelle  die  Leute  
+eventuell  aussteigen .
+Forschungswert :  Hier  entstehen  die  „ reichen “  
+Daten  ( Texte ,  Begründungen ) .
+Adrian  Manes  Perez
+Zurück  in  Core  Flow
+Thema  3 :  
+
+format
+erfahrung _ format  ( detailed )
+externe _ moderation  ( detailed )
+Iteration
+Eigen  
+Komment  
+Einfgeben
+Thema  4
+
+organisationskontext
+akteure
+entscheidungstraeger
+vorlaufzeit  ( detailed )
+zeitraum  ( detailed )
+Thema  1 :   
+Variablen :  
+Projekt  Typ
+Anlass  
+Ausloser  nur  detailed  
+Beteiligte
+Iteration
+Eigen  
+Komment  
+Einfgeben
+Thema  2  :  
+
+ziel
+zielgruppe
+erfolgskriterien  ( detailed )
+ressourcen  ( detailed )
+barrieren  ( detailed )
+kenntnisgrad _ zielgruppe  ( detailede
+Iteration
+Eigen  
+Komment  
+Einfgeben
+Nein
+Nein
+Nein
+Ja
+Ja
+JaRückfragen .  antworten
+( Gelbe  Kästen )
+Datenbank ?  Ja .
+Jedes  Thema  ( 1 – 7 )  braucht  eine  eigene  Sektion  in  
+der  Datenbank .  Es  muss  gespeichert  werden ,  
+welche  Informationen  der  Nutzer  in  jedem  Block  
+eingegeben  hat .  Besonders  wichtig :  Die  Felder ,  
+die  mit  ( detailed )  markiert  sind ,  dürfen  in  der  
+Datenbank  ' leer '  bleiben  ( null  sein ) ,  falls  der  
+Nutzer  nur  den  Express - Modus  nutzt .
+Adrian  Manes  Perez
+( Die  Lila  Rauten )
+Datenbank ?  Ja ,  für  die  Prozess - Analyse .
+Für  die  Forschung  ist  es  wichtig :  Speichern  wir  
+nur  die  finale  Antwort  oder  auch  die  Korrekturen ?  
+Wenn  wir  die  Qualität  der  KI - Unterstützung  
+messen  wollen ,  müssen  wir  die  Anzahl  der  
+Iterationsschleifen  pro  Thema  mitzählen  ( z .  B .  ein  
+Feld  iteration _ count ) .
+Adrian  Manes  Perez
+( Blaue  Kästen )
+Datenbank ?  Ja .
+Das  ist  ein  Meilenstein .  Diese  
+' Zwischenergebnisse '  müssen  als  fester  Stand  
+gespeichert  werden .  Sie  dienen  als  Referenz  für  
+die  weiteren  Themen  ( 5 – 7 ) .
+Adrian  Manes  Perez
+Rückfragen ,  Antworten
+Zwischen  Summer 
+entschieden
+•  offen
+•  Risiken
+•  Annahmen
+Thema  4  :  
+organisationskontext
+akteure
+entscheidungstraeger
+Thema  1 :   
+Projekt  Typ
+AnlassBeteiligte
+Iteration
+Thema  2  :  
+ziel
+zielgruppe
+Iteration
+Thema  3 :  
+
+format
+Iteration
+Ja
+Ja
+Ja
+Ja
+Eigen  
+Komment  
+Einfgeben
+Eigen  
+Komment  
+Einfgeben
+Eigen  
+Komment  
+Einfgeben
+Eigen  
+Komment  
+Einfgeben
+Nein
+Nein
+Nein
+Nein
+Thema  5
+
+fixpunkte
+verhandelbar
+projekt _ story
+visuelle _ darstellung  ( detailed )
+faq _ zielgruppe  ( detailed )
+digitale _ plattform  ( detailed )
+Iteration
+Thema  6
+
+kommunikationswege
+kommunikationsstart  ( detailed )
+Iteration
+Thema  7
+
+erfolgsmessung
+dokumentation  ( detailed )
+nachprojekt _ nutzung  ( detailed )
+Zwischen  Summer 
+entschieden
+•  offen
+•  Risiken
+•  Annahmen
+Eigen  
+Komment  
+Einfgeben
+Eigen  
+Komment  
+Einfgebe
+n
+Eigen  
+Komment  
+Einfgeben
+Nein
+Nein
+Nein
+Ja
+Ja
+Ja
+Interaktion  passiert  hier   “ KI  Agent  “
+ 
+Bot  kann  nachfragen
+Bot  reagiert  dynamisch
+Nutzer  kann  eigene  Antworten  schreiben 
+Antworten  ( Inklusive  Visualisierung )  den  Nutzer  zeigen
+
+prüft  Eingaben
+•  erkennt  Lücken
+•  macht  Vorschläge
+•  erklärt  Inhalte
+( KI  Assistent ) 
+Datenbank ?  Unbedingt  für  das  " Gedächtnis " .
+Der  Bot - Verlauf  muss  geloggt  werden .  Wir  
+brauchen  eine  Tabelle  für  den  Chat - Verlauf  oder  
+die  ' Bot - Logs ' .  Darin  muss  stehen :
+Was  hat  der  Nutzer  geschrieben ?
+Welche  Lücke  hat  die  KI  erkannt ?
+Welchen  Vorschlag  hat  die  KI  gemacht ?  Ohne  
+diese  Speicherung  können  wir  später  nicht  
+nachweisen ,  wie  hilfreich  die  KI  wirklich  war .
+Adrian  Manes  Perez
+End
+Thema  5 :  
+fixpunkte
+verhandelbar
+projekt _ story
+Iteration
+Thema  6
+
+kommunikationswege
+Iteration
+Thema  7
+
+erfolgsmessung
+Ja
+Ja
+Eigen  
+Komment  
+Einfgeben
+Nein
+Eigen  
+Komment  
+Einfgeben
+Nein
+The  Dialogue  Management  ( The  Interaction )  Core  Flow
+zurück  zu  dem  Core  flow
+Kollaboration  
+erforderlich  ?
+Nein
+Nein
+Kontext  
+ergänzen
+Kontext  
+ergänzen
+Context  Enrichment  Service :   
+Web - Suche
+•  Upload  &  Analyse
+•  Struktur - Extraktion
+•  Projektstruktur - Ableitung 
+projekt  Speichern    
+Ja
+Zwischenstand  teilen
+Feedback  einholen
+Rückmeldungen  integrieren
+Kollaboration  
+erforderlich  ? Ja
+Nein
+Nein
+Final  Ergebnisse  Speicherung
+Dateninterpretation
+Datenbank ?  Indirekt  ( Lesezugriff ) .
+Das  System  muss  auf  alle  gespeicherten  
+Antworten  eines  Projekts  zugreifen  können .  
+Wichtig :  Der  Programmierer  muss  eine  Funktion  
+vorsehen ,  die  ' unfertige '  Themen  von  ' fertigen '  
+Themen  trennt ,  damit  die  Analyse  nicht  durch  
+Fragmente  verfälscht  wird .
+Adrian  Manes  Perez
+Daten  Interpretation :
+Analyse  der  
+gesammelten  
+Antworten
+Analyse  der  
+hochgeladenen   
+Dokumente
+Zusammenhänge  
+erkennen
+Datenbank ?  Ja .
+Die  Interpretation  selbst  ist  ein  neuer  Datensatz .  
+Diese  darf  die  ursprünglichen  Antworten  des  
+Nutzers  niemals  überschreiben .  Wir  brauchen  ein  
+eigenes  Feld  ai _ interpretation _ summary ,  damit  wir  
+später  vergleichen  können :  ' Was  hat  der  Nutzer  
+gesagt ? '  vs .  ' Was  hat  die  KI  daraus  gemacht ? '
+Adrian  Manes  Perez
+Datenbank ?  Ja .
+Wenn  die  KI  Zusammenhänge  zwischen  
+verschiedenen  Projekten  ( z .  B .  ' Stadtteil  A  hat  
+ähnliche  Probleme  wie  Stadtteil  B ' )  erkennt ,  
+müssen  diese  Tags  oder  Querverweise  
+gespeichert  werden .  Für  den  Programmierer :  Wir  
+brauchen  eine  Tabelle  für  ' Erkenntnisse '  ( Insights ) ,  
+die  auf  mehrere  Projekte  verweisen  kann .
+Adrian  Manes  Perez
+Werkzeugkasten  und  Praxisplannung
+Projektübersicht
+Generierung  der  Werkzeuge  ( Checklisten ,  
+Agenda ,  Timeline )
+Das  System  erstellt  hier  Dokumente  oder  Listen  
+basierend  auf  den  vorherigen  Schritten .
+Datenbank ?  Ja .
+Jedes  dieser  Elemente  ( z .  B .  die  ' Timeline ' )  muss  
+als  bearbeitbares  Objekt  in  der  Datenbank  
+gespeichert  werden .  Es  reicht  nicht ,  nur  ein  PDF  
+zu  generieren .  Der  Nutzer  muss  die  Meilensteine  
+später  in  seiner  Projektverwaltung  abhaken  oder  
+verschieben  können .
+Adrian  Manes  Perez
+Werkzeugkasten  
+Cheklisten :   
+Vorbereitung   
+Durchführung   
+Nachbereitung
+Empfehlungen :   
+Methoden   
+Kommunikation   
+Risiken   
+nächste  Schritte
+Agenda  /  
+Programmstruktur
+Aufgabenpakete  
+( Owner ,  Deadline )
+Aufgabenpakete  ( Owner ,  Deadline )
+Hier  wird  es  operativ .  Das  ist  klassische  
+Projektmanagement - Logik .
+Datenbank ?  Ja ,  eine  neue  Tabelle .
+Hier  verlassen  wir  die  reine  KI - Interaktion .  Wir  
+brauchen  eine  Tabelle  Tasks  ( Aufgaben ) .  Jede  
+Aufgabe  muss  verknüpft  sein  mit :
+Einer  Beschreibung  ( description ) .
+Einem  Verantwortlichen  ( owner ) .
+Einem  Datum  ( deadline ) . “
+Forschungswert :  Hier  können  wir  auswerten :  
+Welche  Aufgabenpakete  werden  am  häufigsten  
+erstellt ?  Wo  setzen  die  Leute  ihre  Schwerpunkte ?
+Adrian  Manes  Perez
+Timeline  &  
+Meilensteine
+Empfehlungen  ( Methoden  &  Kommunikation )
+Die  KI  schlägt  hier  Vorgehensweisen  vor .
+Datenbank ?  Ja .
+ Ähnlich  wie  bei  der  Interpretation  müssen  wir  
+speichern ,  welche  Methoden  die  KI  empfohlen  
+hat .  Aber  zusätzlich  brauchen  wir  ein  Feld  für  die  
+Nutzer - Auswahl :  Welche  der  Empfehlungen  hat  
+der  Nutzer  tatsächlich  in  seinen  ' Werkzeugkasten '  
+übernommen ?
+Adrian  Manes  Perez
+Reporting  &  Ergebnisse  ( Finalisierung )
+Projektstatus  :   
+Aktuelle  Stand ,  nächster  
+Schritte
+Reporting    
+AufgabenplanReport   Erstellung  fürs  
+gesamte  ProejktVersionierte  SnapshotsExport  ( PDF  /  Dokument  /  
+Link )
+Datenbank ?  Ja .
+Wir  brauchen  ein  Feld  completion _ summary .  Hier  
+wird  der  finale  Status  zum  Zeitpunkt  des  Reports  
+eingefroren .  Das  ist  wichtig  für  die  Forschung ,  um  
+den  Output  am  Ende  des  Projekts  zu  bewerten .
+Adrian  Manes  Perez
+Datenbank ?  Ja ,  eine  eigene  Tabelle .
+Ein  Snapshot  ist  wie  ein  Foto .  Der  Programmierer  
+darf  hier  nicht  einfach  nur  auf  die  aktuellen  Daten  
+verweisen .  Er  muss  eine  Tabelle  Snapshots  
+anlegen ,  in  der  der  gesamte  Datenstand  zu  einem  
+spezifischen  Zeitpunkt  ( z . B .  ' Abgabe  Vorstudie ' )  
+kopiert  und  schreibgeschützt  gespeichert  wird .  
+Nur  so  ist  die  wissenschaftliche  
+Nachvollziehbarkeit  gegeben .
+Adrian  Manes  Perez
+Datenbank ?  Ja  ( Metadaten ) .
+Wir  müssen  tracken ,  wie  oft  und  in  welchem  
+Format  Ergebnisse  exportiert  werden .  Das  zeigt  
+uns ,  welches  Format  ( z . B .  PDF  für  die  Akte  oder  
+Link  für  die  Website )  für  die  Partizipationspraxis  
+am  wichtigsten  ist .
+Adrian  Manes  Perez
+Datenbank ?  Indirekt  ( Dokumenten - Management ) .
+Wenn  ein  Report  generiert  wird ,  muss  die  
+Datenbank  die  Verknüpfung  zu  diesem  Dokument  
+speichern .  Wir  brauchen  ein  Feld  report _ file _ path  
+oder  report _ url .  Zudem  sollte  gespeichert  werden ,  
+wer  den  Report  wann  generiert  hat .
+Adrian  Manes  Perez
+Back  End
+Data  Interpretation  Back  end

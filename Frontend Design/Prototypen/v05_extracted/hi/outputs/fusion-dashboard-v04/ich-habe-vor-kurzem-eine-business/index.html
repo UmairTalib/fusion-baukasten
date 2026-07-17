@@ -1,0 +1,1659 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fusion - Dashboard mit KI-Co-Pilot</title>
+    <link rel="stylesheet" href="./styles.css?v=07" />
+  </head>
+  <body class="auth-active">
+    <section class="login-screen" id="loginScreen" aria-label="Fusion Demo Login">
+      <div class="login-card">
+        <div class="login-brand">
+          <div class="brand-symbol">F</div>
+          <span>FUSION</span>
+        </div>
+        <div class="login-copy">
+          <h1>Willkommen bei Fusion</h1>
+          <p>Plane, organisiere und steuere Projekte mit KI-gestütztem Co-Pilot, Projektmanagement und kollaborativen Arbeitsbereichen.</p>
+        </div>
+        <form class="login-form" id="loginForm">
+          <label>
+            E-Mail
+            <input id="loginEmail" type="email" autocomplete="email" placeholder="max@example.com" />
+          </label>
+          <label>
+            Passwort
+            <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Passwort eingeben" />
+          </label>
+          <button class="create-btn" type="submit">Einloggen</button>
+          <button class="outline-btn" id="guestLogin" type="button">Als Gast fortfahren</button>
+        </form>
+        <p class="login-hint">Demo-Einstieg ohne echte Registrierung oder Backend-Prüfung.</p>
+      </div>
+      <div class="login-preview" aria-hidden="true">
+        <div class="preview-top"></div>
+        <div class="preview-grid">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="preview-panel"></div>
+      </div>
+    </section>
+
+    <aside class="main-nav">
+      <div class="brand">
+        <div class="brand-symbol">F</div>
+        <span>FUSION</span>
+      </div>
+
+      <nav class="nav-list" aria-label="Fusion Navigation">
+        <button class="nav-link active" data-view="dashboard" type="button"><span class="nav-icon home"></span>Dashboard</button>
+        <button class="nav-link" data-view="projects" type="button"><span class="nav-icon folder"></span>Projekte</button>
+        <button class="nav-link" data-view="tasks" type="button"><span class="nav-icon check"></span>Aufgaben</button>
+        <button class="nav-link" data-view="calendar" type="button"><span class="nav-icon calendar"></span>Kalender</button>
+        <button class="nav-link" data-view="files" type="button"><span class="nav-icon file"></span>Dateien</button>
+        <button class="nav-link" data-view="communication" type="button"><span class="nav-icon chat"></span>Kommunikation</button>
+        <button class="nav-link" data-view="templates" type="button"><span class="nav-icon book"></span>Vorlagen</button>
+      </nav>
+
+      <p class="nav-title">Projektmanagement</p>
+      <nav class="nav-list compact" aria-label="Projektmanagement">
+        <button class="nav-link" data-view="timeline" type="button"><span class="nav-icon timeline"></span>Projektzeitplan</button>
+        <button class="nav-link" data-view="management" type="button"><span class="nav-icon sliders"></span>Aufgabenmanagement</button>
+        <button class="nav-link" data-view="team" type="button"><span class="nav-icon users"></span>Personen & Teams</button>
+        <button class="nav-link" data-view="responsibility" type="button"><span class="nav-icon shield"></span>Verantwortlichkeiten</button>
+      </nav>
+
+      <p class="nav-title">Analyse & Planung</p>
+      <nav class="nav-list compact" aria-label="Analyse und Planung">
+        <button class="nav-link" data-view="coreflow" type="button"><span class="nav-icon bot"></span>Core Flow</button>
+        <button class="nav-link" data-view="toolkit" type="button"><span class="nav-icon toolbox"></span>Werkzeugkasten</button>
+        <button class="nav-link" data-view="reporting" type="button"><span class="nav-icon report"></span>Reporting</button>
+      </nav>
+
+      <div class="nav-footer">
+        <div class="user-mini">AM</div>
+        <div>
+          <strong>Alex Müller</strong>
+          <span>Projektmanager</span>
+        </div>
+      </div>
+    </aside>
+
+    <aside class="copilot open" id="copilot">
+      <button class="copilot-toggle" id="copilotToggle" type="button" aria-label="Co-Pilot einklappen">‹</button>
+      <div class="copilot-head">
+        <div class="agent-avatar">AI</div>
+        <div>
+          <strong>Fusion Co-Pilot</strong>
+          <span>Agentischer Arbeitsmodus</span>
+        </div>
+      </div>
+
+      <div class="mode-switch" role="group" aria-label="Co-Pilot Modus">
+        <button class="active" data-mode="quick" type="button">
+          <strong>Schnell</strong>
+          <span>Aktionen</span>
+        </button>
+        <button data-mode="deep" type="button">
+          <strong>Denkmodus</strong>
+          <span>Analyse</span>
+        </button>
+      </div>
+
+      <div class="agent-status">
+        <span class="pulse"></span>
+        <div>
+          <strong id="modeLabel">Schnellmodus aktiv</strong>
+          <p id="modeDescription">Ich führe direkte Plattformaktionen aus und öffne die passenden Bereiche.</p>
+        </div>
+      </div>
+
+      <div class="agent-chat" id="agentChat">
+        <div class="message agent">Ich bin mit deinem Projektkontext verbunden. Du kannst mir direkte Ziele geben, nicht nur Fragen.</div>
+        <div class="message agent">Beispiele: „Plane mir ein neues Projekt“, „Analysiere Risiken“, „Erstelle Agenda“.</div>
+      </div>
+
+      <form class="agent-input" id="agentForm">
+        <input id="agentInput" autocomplete="off" placeholder="Plane mir ein neues Projekt ..." />
+        <button type="submit" aria-label="Senden">➜</button>
+      </form>
+
+      <div class="copilot-section">
+        <div class="section-line">
+          <strong>Schnellaktionen</strong>
+          <span>vorgeschlagen</span>
+        </div>
+        <div class="quick-actions">
+          <button data-command="Neues Projekt erstellen" type="button">Neues Projekt erstellen</button>
+          <button data-command="Projekt zusammenfassen" type="button">Projekt zusammenfassen</button>
+          <button data-command="Risiken analysieren" type="button">Risiken analysieren</button>
+          <button data-command="Agenda erstellen" type="button">Agenda erstellen</button>
+          <button data-command="Stakeholder hinzufügen" type="button">Stakeholder hinzufügen</button>
+        </div>
+      </div>
+
+      <div class="copilot-section">
+        <div class="section-line">
+          <strong>Aktive Agenten</strong>
+          <span>arbeiten im Hintergrund</span>
+        </div>
+        <div class="agent-stack">
+          <article>
+            <span class="agent-dot planning"></span>
+            <div>
+              <strong>Planungs-Agent</strong>
+              <small>Agenda & Aufgabenpakete</small>
+            </div>
+            <em>aktiv</em>
+          </article>
+          <article>
+            <span class="agent-dot audience"></span>
+            <div>
+              <strong>Zielgruppen-Agent</strong>
+              <small>Personas & Stakeholder</small>
+            </div>
+            <em>prüft</em>
+          </article>
+          <article>
+            <span class="agent-dot risk"></span>
+            <div>
+              <strong>Risiko-Agent</strong>
+              <small>Blocker & Annahmen</small>
+            </div>
+            <em>bereit</em>
+          </article>
+        </div>
+      </div>
+
+      <div class="copilot-section">
+        <div class="section-line">
+          <strong>Kontext</strong>
+          <span>eingebunden</span>
+        </div>
+        <div class="context-list">
+          <div><span>Projekt</span><strong>Nachhaltigkeits-Workshop</strong></div>
+          <div><span>Dateien</span><strong>3 Dokumente verknüpft</strong></div>
+          <div><span>Status</span><strong>68% Fortschritt · Risiko hoch</strong></div>
+        </div>
+      </div>
+
+      <div class="multi-input">
+        <button data-command="Datei hochladen" type="button" title="Datei hochladen">📎</button>
+        <button data-command="Spracheingabe starten" type="button" title="Spracheingabe">🎙</button>
+        <button data-command="Websuche starten" type="button" title="Websuche">⌕</button>
+        <button data-command="Screenshot analysieren" type="button" title="Screenshot">▣</button>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div class="project-switch">
+          <span class="project-dot"></span>
+          Nachhaltigkeits-Workshop
+        </div>
+        <label class="search-field">
+          <span></span>
+          <input type="search" placeholder="Suche nach Aufgaben, Projekten, Personen ..." />
+        </label>
+        <div class="top-icons">
+          <button type="button">?</button>
+          <button type="button">12</button>
+          <button class="outline-btn" id="startDemo" type="button">Demo starten</button>
+          <button class="create-btn" data-create="auto" type="button">+ Neues erstellen</button>
+        </div>
+      </header>
+
+      <section class="screen active" id="dashboard">
+        <div class="page-title">
+          <div>
+            <h1>Guten Morgen, Anna! 👋</h1>
+            <p>Hier ist dein Management-Überblick mit KI-Schnellzugriff auf der linken Seite.</p>
+          </div>
+          <button class="outline-btn" data-command="Tagesbriefing erstellen" type="button">Tagesbriefing erstellen</button>
+        </div>
+
+        <div class="stats-grid">
+          <article class="stat-card">
+            <div class="stat-icon purple"></div>
+            <strong>12</strong>
+            <span>Alle Projekte</span>
+            <small>+2 seit letzter Woche</small>
+          </article>
+          <article class="stat-card">
+            <div class="stat-icon green"></div>
+            <strong>7</strong>
+            <span>Aktive Projekte</span>
+            <small>+1 seit letzter Woche</small>
+          </article>
+          <article class="stat-card">
+            <div class="stat-icon amber"></div>
+            <strong>3</strong>
+            <span>In Planung</span>
+            <small>Keine Änderung</small>
+          </article>
+          <article class="stat-card">
+            <div class="stat-ring">68%</div>
+            <span>Durchschnittlicher Fortschritt</span>
+            <small>+8% seit letzter Woche</small>
+          </article>
+        </div>
+
+        <section class="panel ai-timeline-panel">
+          <div class="panel-head">
+            <h2>AI Activity Timeline</h2>
+            <span class="badge purple">Agentenlog</span>
+          </div>
+          <div class="ai-activity-timeline" id="aiActivityTimeline">
+            <article><strong>Co-Pilot bereit</strong><span>Wartet auf Core Flow Eingaben.</span></article>
+          </div>
+        </section>
+
+        <div class="main-grid">
+          <section class="panel project-panel">
+            <div class="panel-head">
+              <h2>Projekte</h2>
+              <button type="button">Alle Projekte anzeigen →</button>
+            </div>
+            <table class="project-table">
+              <thead>
+                <tr>
+                  <th>Projekt</th>
+                  <th>Status</th>
+                  <th>Fortschritt</th>
+                  <th>Deadline</th>
+                  <th>Team</th>
+                  <th>Risiko</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Nachhaltigkeits-Workshop</strong><span>Interne Workshops</span></td>
+                  <td><span class="badge green">Aktiv</span></td>
+                  <td><div class="bar"><span style="width: 75%"></span></div>75%</td>
+                  <td>15. Mai 2025 <em>Überfällig</em></td>
+                  <td><div class="faces"><span></span><span></span><span></span><b>+2</b></div></td>
+                  <td><span class="badge red">Hoch</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Produktlaunch Kampagne</strong><span>Marketing</span></td>
+                  <td><span class="badge green">Aktiv</span></td>
+                  <td><div class="bar"><span style="width: 40%"></span></div>40%</td>
+                  <td>30. Mai 2025 <em>In 10 Tagen</em></td>
+                  <td><div class="faces"><span></span><span></span><b>+3</b></div></td>
+                  <td><span class="badge amber">Mittel</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Kundenfeedback Analyse</strong><span>Forschung</span></td>
+                  <td><span class="badge green">Aktiv</span></td>
+                  <td><div class="bar"><span style="width: 90%"></span></div>90%</td>
+                  <td>05. Mai 2025 <em>In 5 Tagen</em></td>
+                  <td><div class="faces"><span></span><span></span><span></span></div></td>
+                  <td><span class="badge green">Niedrig</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <aside class="panel side-panel">
+            <div class="panel-head">
+              <h2>Kommunikation</h2>
+              <button data-view="communication" type="button">Zum Zentrum →</button>
+            </div>
+            <div class="message-list">
+              <article>
+                <div class="person"></div>
+                <div><strong>Sophie Wagner</strong><p>Könnten wir das Feedback am Freitag besprechen?</p></div>
+                <span>10:24</span>
+              </article>
+              <article>
+                <div class="person dark"></div>
+                <div><strong>Thomas Becker</strong><p>Ich brauche noch eine Freigabe für das Budget.</p></div>
+                <span>09:48</span>
+              </article>
+              <article>
+                <div class="person group"></div>
+                <div><strong>Team Marketing</strong><p>Lisa: Danke für die Infos!</p></div>
+                <span>Gestern</span>
+              </article>
+            </div>
+          </aside>
+
+          <section class="panel kpi-panel">
+            <h2>KPI-Statistiken</h2>
+            <div class="kpi-grid">
+              <div class="chart-bars"><span style="height: 45%"></span><span style="height: 58%"></span><span style="height: 42%"></span><span style="height: 70%"></span><span style="height: 88%"></span><span style="height: 62%"></span></div>
+              <div class="donut"><strong>12</strong><span>Gesamt</span></div>
+              <div class="risk-list">
+                <strong>Kritische Hinweise</strong>
+                <p>Nachhaltigkeits-Workshop <span>Überfällig</span></p>
+                <p>Kundenfeedback Analyse <span>In 5 Tagen</span></p>
+                <p>Produktlaunch Kampagne <span>In 10 Tagen</span></p>
+              </div>
+            </div>
+          </section>
+
+          <aside class="panel side-panel">
+            <div class="panel-head">
+              <h2>Aufgaben-Übersicht</h2>
+              <button data-view="tasks" type="button">Alle Aufgaben →</button>
+            </div>
+            <ul class="task-list" id="taskList">
+              <li><input type="checkbox" /> Budgetfreigabe einholen <span class="badge red">Hoch</span></li>
+              <li><input type="checkbox" /> Workshop Agenda finalisieren <span class="badge red">Hoch</span></li>
+              <li><input type="checkbox" /> Kundenfeedback auswerten <span class="badge amber">Mittel</span></li>
+              <li><input type="checkbox" /> Report für Q2 vorbereiten <span class="badge green">Niedrig</span></li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+
+      <section class="screen" id="communication">
+        <div class="page-title">
+          <div>
+            <h1>Kommunikationszentrum</h1>
+            <p>Alle Gespräche, Nachrichten und Updates an einem Ort.</p>
+          </div>
+          <button class="create-btn" type="button">+ Neuer Chat</button>
+        </div>
+        <div class="communication-layout">
+          <section class="panel chat-list comm-list">
+            <div class="tabs comm-tabs">
+              <button class="active">Chats</button>
+              <button>Gruppen</button>
+              <button>Erwähnungen</button>
+              <button>Entwürfe</button>
+              <button>Archiv</button>
+            </div>
+            <label class="chat-search">
+              <span></span>
+              <input type="search" placeholder="Chats durchsuchen" />
+            </label>
+            <div class="chat-filters">
+              <button class="active" type="button">Alle</button>
+              <button type="button">Ungelesen 4</button>
+              <button type="button">Offen 5</button>
+              <button type="button">Favoriten</button>
+            </div>
+            <article class="active">
+              <div class="person"></div>
+              <div>
+                <strong>Sophie Wagner</strong>
+                <small>Projekt: Nachhaltigkeits-Workshop</small>
+                <p>Können wir das Dokument heute noch finalisieren?</p>
+              </div>
+              <aside><time>10:24</time><span class="badge purple">Offen</span></aside>
+            </article>
+            <article>
+              <div class="person dark"></div>
+              <div>
+                <strong>Thomas Becker</strong>
+                <small>Projekt: Produktlaunch Kampagne</small>
+                <p>Ich habe die Zahlen aktualisiert. Bitte schau sie dir an.</p>
+              </div>
+              <aside><time>09:48</time><span class="badge amber">In Bearbeitung</span></aside>
+            </article>
+            <article>
+              <div class="person group"></div>
+              <div>
+                <strong>Team Marketing</strong>
+                <small>Gruppe · 6 Mitglieder</small>
+                <p>Lisa: Danke für die schnelle Rückmeldung!</p>
+              </div>
+              <aside><time>Gestern</time><span class="badge green">Abgeschlossen</span></aside>
+            </article>
+            <article>
+              <div class="person blue"></div>
+              <div>
+                <strong>Projekt-Updates</strong>
+                <small>Gruppe · 8 Mitglieder</small>
+                <p>Neues Update wurde hochgeladen.</p>
+              </div>
+              <aside><time>16. Mai</time><span class="badge amber">In Bearbeitung</span></aside>
+            </article>
+          </section>
+          <section class="panel chat-window comm-chat">
+            <div class="chat-header comm-chat-header">
+              <div class="person"></div>
+              <div>
+                <strong>Sophie Wagner</strong>
+                <span>Projekt: Nachhaltigkeits-Workshop · zuletzt aktiv 10:29</span>
+              </div>
+              <div class="chat-actions">
+                <button type="button">Video</button>
+                <button type="button">Anruf</button>
+                <button type="button">Info</button>
+              </div>
+            </div>
+            <div class="conversation comm-conversation">
+              <div class="day-divider">Heute</div>
+              <article class="chat-message partner">
+                <div class="person"></div>
+                <div>
+                  <div class="message-meta"><strong>Sophie Wagner</strong><time>10:24</time></div>
+                  <p class="bubble left">Hallo Lisa, kannst du mir den aktuellen Stand zum Workshop-Dokument schicken?</p>
+                </div>
+              </article>
+              <article class="chat-message me">
+                <div>
+                  <div class="message-meta"><time>10:25</time></div>
+                  <p class="bubble right">Hallo Sophie, klar. Ich habe das Dokument gestern überarbeitet und hier ist die neue Version.</p>
+                  <div class="file-attachment">
+                    <strong>Workshop_Dokument_v2.docx</strong>
+                    <span>DOCX · 1.2 MB</span>
+                    <button type="button">Download</button>
+                  </div>
+                  <div class="reaction">👍 1</div>
+                </div>
+              </article>
+              <article class="chat-message partner">
+                <div class="person"></div>
+                <div>
+                  <div class="message-meta"><strong>Sophie Wagner</strong><time>10:27</time></div>
+                  <p class="bubble left">Danke! Sieht sehr gut aus. Gibt es noch offene Punkte, die wir heute klären sollten?</p>
+                </div>
+              </article>
+              <article class="chat-message me">
+                <div>
+                  <div class="message-meta"><time>10:28</time></div>
+                  <p class="bubble right">Ja, ich habe noch zwei Fragen zur Agenda. Lass uns die später im Meeting besprechen.</p>
+                  <small class="status-hint">Gesehen · Aufgabe vorgeschlagen</small>
+                </div>
+              </article>
+              <article class="chat-message partner">
+                <div class="person"></div>
+                <div>
+                  <div class="message-meta"><strong>Sophie Wagner</strong><time>10:29</time></div>
+                  <p class="bubble left">Perfekt, dann bis später!</p>
+                </div>
+              </article>
+            </div>
+            <div class="ai-inline">
+              <strong>Co-Pilot Aktionen</strong>
+              <button data-command="Aus Chat Aufgabe erstellen" type="button">Aufgabe aus Nachricht erstellen</button>
+              <button data-command="Chat zusammenfassen" type="button">Gespräch zusammenfassen</button>
+              <button data-command="Offene Punkte erkennen" type="button">Offene Punkte erkennen</button>
+              <button data-command="Antwortvorschlag generieren" type="button">Antwortvorschlag generieren</button>
+            </div>
+            <div class="message-composer">
+              <div class="composer-tabs"><button class="active" type="button">Nachricht</button><button type="button">Interne Notiz</button></div>
+              <div class="composer-box">
+                <input placeholder="Nachricht schreiben..." />
+                <button type="button" title="Datei anhängen">📎</button>
+                <button type="button" title="Emoji">☺</button>
+                <button type="button" title="Erwähnung">@</button>
+                <button type="button" title="Formatierung">Aa</button>
+                <button class="send-btn" type="button">➜</button>
+              </div>
+            </div>
+          </section>
+          <aside class="panel detail-card comm-details">
+            <h2>Details</h2>
+            <div class="profile-card">
+              <div class="person"></div>
+              <div>
+                <strong>Sophie Wagner</strong>
+                <span>sophie.wagner@company.com</span>
+                <small>Projekt: Nachhaltigkeits-Workshop</small>
+              </div>
+            </div>
+            <label class="status-select">
+              <span>Gesprächsstatus</span>
+              <select>
+                <option>Offen</option>
+                <option>In Bearbeitung</option>
+                <option>Abgeschlossen</option>
+              </select>
+            </label>
+            <section class="detail-section">
+              <div class="section-title-row"><strong>Teilnehmer</strong><button type="button">+ Hinzufügen</button></div>
+              <div class="participant"><div class="person"></div><div><strong>Lisa Hoffmann</strong><span>Teammitglied</span></div></div>
+              <div class="participant"><div class="person dark"></div><div><strong>Sophie Wagner</strong><span>Projektmanagerin</span></div></div>
+            </section>
+            <section class="detail-section">
+              <div class="section-title-row"><strong>Geteilte Dateien</strong><button type="button">Alle anzeigen</button></div>
+              <div class="shared-file"><strong>Workshop_Dokument_v2.docx</strong><span>1.2 MB · Heute von Lisa</span></div>
+              <div class="shared-file"><strong>Agenda_Entwurf.pdf</strong><span>856 KB · 14. Mai von Sophie</span></div>
+            </section>
+            <section class="detail-section options-list">
+              <button type="button">Benachrichtigungen</button>
+              <button type="button">Chat stummschalten</button>
+              <button type="button">Statusverlauf anzeigen</button>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <section class="screen" id="coreflow">
+        <div class="page-title">
+          <div>
+            <h1>Core Flow - Dialogue Management</h1>
+            <p>Die KI stellt dynamisch passende Fragen und speichert den Kontext.</p>
+          </div>
+          <div class="core-mode-bar" aria-label="Core Flow Modus">
+            <button type="button">Express-Modus</button>
+            <button class="active" type="button">Detaillierter Modus</button>
+          </div>
+        </div>
+        <div class="core-layout">
+          <section class="panel block-list core-sidebar">
+            <div class="panel-head">
+              <h2>Themenblöcke</h2>
+              <span class="badge purple" id="coreBlockCounter">1 / 7</span>
+            </div>
+            <ol class="workflow-steps">
+              <li class="active" data-core-step="0"><strong>Zielgruppe definieren</strong><span>In Bearbeitung</span></li>
+              <li data-core-step="1"><strong>Ausgangslage & Kontext</strong><span>Offen</span></li>
+              <li data-core-step="2"><strong>Ziele & Anforderungen</strong><span>Offen</span></li>
+              <li data-core-step="3"><strong>Rahmenbedingungen</strong><span>Offen</span></li>
+              <li data-core-step="4"><strong>Risiken & Annahmen</strong><span>Offen</span></li>
+              <li data-core-step="5"><strong>Planung & Umsetzung</strong><span>Offen</span></li>
+              <li data-core-step="6"><strong>Zusammenfassung & Übergabe</strong><span>Offen</span></li>
+            </ol>
+            <div class="core-progress">
+              <div class="progress-head"><strong>Gesamtfortschritt</strong><span id="coreProgressText">14%</span></div>
+              <div class="core-progress-bar"><span id="coreProgressBar" style="width: 14%"></span></div>
+              <p id="coreSaveTime">Letzte Speicherung: vor 2 Min.</p>
+              <div class="autosave"><span></span> Automatisch gespeichert</div>
+            </div>
+          </section>
+          <section class="panel dialogue core-dialogue">
+            <div class="dialogue-stream" id="coreDialogueStream" aria-live="polite">
+              <article class="dialogue-message ai-message">
+                <div class="dialogue-avatar">AI</div>
+                <div class="dialogue-card">
+                  <p>Um die Zielgruppe besser zu verstehen, stelle ich dir ein paar Fragen.</p>
+                  <strong>In welcher Branche bewegt sich dein Projekt?</strong>
+                  <span>10:32</span>
+                </div>
+              </article>
+              <article class="dialogue-message user-message">
+                <div class="dialogue-card">
+                  <p>Unser Projekt ist im Bereich Bildung und Nachhaltigkeit.</p>
+                  <span>10:33</span>
+                </div>
+                <div class="dialogue-avatar user">AM</div>
+              </article>
+              <article class="dialogue-message ai-message">
+                <div class="dialogue-avatar">AI</div>
+                <div class="dialogue-card">
+                  <p>Danke. Das ist ein guter Start.</p>
+                  <strong>Geht es eher um einzelne Personen, Organisationen oder beides?</strong>
+                  <span>10:33</span>
+                </div>
+              </article>
+              <div class="choice-row" id="coreChoiceRow">
+                <button data-core-choice="Einzelpersonen" type="button">Einzelpersonen</button>
+                <button data-core-choice="Organisationen" type="button">Organisationen</button>
+                <button data-core-choice="Beides" type="button">Beides</button>
+              </div>
+              <article class="dialogue-message user-message">
+                <div class="dialogue-card">
+                  <p>Eher Einzelpersonen, hauptsächlich Studierende.</p>
+                  <span>10:34</span>
+                </div>
+                <div class="dialogue-avatar user">AM</div>
+              </article>
+              <article class="dialogue-message ai-message">
+                <div class="dialogue-avatar">AI</div>
+                <div class="dialogue-card">
+                  <p>Verstanden. Welche Altersgruppe betrifft das hauptsächlich?</p>
+                  <strong>Bitte gib eine ungefähre Spanne an.</strong>
+                  <span>10:34</span>
+                </div>
+              </article>
+            </div>
+            <div class="dialogue-input">
+              <textarea id="coreInput" placeholder="Deine Antwort eingeben ..."></textarea>
+              <button id="coreSend" type="button" aria-label="Antwort senden">➜</button>
+            </div>
+            <div class="prompt-tools">
+              <button data-core-tool="examples" type="button">Beispiele anzeigen</button>
+              <button data-core-tool="explain" type="button">Erklärung</button>
+              <button data-core-tool="suggest" type="button">KI-Vorschlag generieren</button>
+            </div>
+          </section>
+          <aside class="core-side-stack">
+            <section class="panel context-card">
+              <h2>Context Enrichment</h2>
+              <p>Füge zusätzlichen Kontext hinzu oder lasse Inhalte analysieren.</p>
+              <button type="button">Datei hochladen</button>
+              <button type="button">Websuche starten</button>
+              <button type="button">Dokument analysieren</button>
+              <button type="button">Kontext hinzufügen</button>
+            </section>
+            <section class="panel context-card">
+              <h2>Kollaboration</h2>
+              <p>Teile Zwischenstände und sammle Feedback von anderen.</p>
+              <button type="button">Zwischenstand teilen</button>
+              <button type="button">Feedback anfragen</button>
+              <button type="button">Feedback integrieren</button>
+            </section>
+            <section class="panel data-status">
+              <h2>Aktueller Datenstatus</h2>
+              <ul>
+                <li class="done">Profil geladen</li>
+                <li class="done">Projekt-ID aktiv</li>
+                <li class="done" id="coreSavedStatus">Eingaben gespeichert</li>
+                <li class="info" id="coreContextStatus">Kontext vorhanden</li>
+                <li id="coreCollabStatus">Kollaboration aktiv</li>
+              </ul>
+              <div class="save-box" id="coreStatusBox">Alle Daten werden automatisch gespeichert und stehen für zukünftige Projekte zur Verfügung.</div>
+            </section>
+          </aside>
+        </div>
+        <div class="core-footer-actions">
+          <button class="outline-btn" id="coreBack" type="button">← Zurück</button>
+          <button class="outline-btn" id="coreSave" type="button">Zwischenspeichern</button>
+          <button class="create-btn" id="coreNext" type="button">Weiter zum nächsten Block →</button>
+        </div>
+      </section>
+
+      <section class="screen" id="toolkit">
+        <div class="page-title">
+          <div>
+            <h1>Werkzeugkasten & Praxisplanung</h1>
+            <p>Methoden, Checklisten und Aufgabenpakete für die Umsetzung.</p>
+          </div>
+          <button class="create-btn" data-command="Plan bearbeiten" type="button">Plan bearbeiten</button>
+        </div>
+        <div class="toolkit-grid">
+          <section class="panel generated-toolkit" id="generatedToolkit">
+            <div>
+              <h2>Generierter Werkzeugkasten</h2>
+              <p id="generatedToolkitText">Noch nicht aus dem Core Flow generiert. Schließe den Dialog ab, damit Fusion Methoden, Checklisten und Aufgabenpakete vorbereitet.</p>
+            </div>
+            <button class="create-btn" id="downloadToolkit" type="button">Werkzeugkasten herunterladen</button>
+          </section>
+          <section class="panel project-summary">
+            <h2>Projektübersicht</h2>
+            <div class="summary-content">
+              <div class="image-placeholder"></div>
+              <div>
+                <p><strong>Projektname</strong> Nachhaltige Workshop-Reihe für Jugendliche</p>
+                <p><strong>Ziel</strong> Bewusstsein für Nachhaltigkeit stärken.</p>
+                <p><strong>Format</strong> Interaktive Workshops in Präsenz</p>
+              </div>
+            </div>
+          </section>
+          <section class="panel checklist-panel">
+            <h2>Checklisten</h2>
+            <div class="check-columns" id="toolkitChecklistColumns">
+              <div><strong>Vorbereitung</strong><p>6 / 8 erledigt</p><span style="width: 75%"></span></div>
+              <div><strong>Durchführung</strong><p>2 / 7 erledigt</p><span style="width: 30%"></span></div>
+              <div><strong>Nachbereitung</strong><p>1 / 6 erledigt</p><span style="width: 18%"></span></div>
+            </div>
+          </section>
+          <section class="panel recommendation-panel">
+            <h2>Co-Pilot Empfehlungen</h2>
+            <div class="recommendation-cards" id="toolkitRecommendationCards">
+              <article><strong>Methoden</strong><p>Design Thinking, World Café, Gruppenarbeit</p></article>
+              <article><strong>Risiken</strong><p>Geringe Teilnahmebereitschaft, Ressourcenknappheit</p></article>
+              <article><strong>Nächste Schritte</strong><p>Stakeholder-Meeting planen, Material finalisieren</p></article>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="screen" id="reporting">
+        <div class="page-title">
+          <div>
+            <h1>Reporting & Ergebnisse</h1>
+            <p>Projektberichte, Snapshots und Exporte für unterschiedliche Zielgruppen.</p>
+          </div>
+          <button class="create-btn" data-command="PDF Report generieren" type="button">PDF Export</button>
+        </div>
+        <div class="report-grid">
+          <article class="panel report-stat"><strong>100%</strong><span>Projektstatus abgeschlossen</span></article>
+          <article class="panel report-stat"><strong>24</strong><span>Aufgaben gesamt</span></article>
+          <article class="panel report-stat"><strong>5</strong><span>Erstellte Reports</span></article>
+          <article class="panel report-stat"><strong>3</strong><span>Versionierte Snapshots</span></article>
+          <section class="panel reports-table">
+            <h2>Erstellte Reports</h2>
+            <table id="reportsTable">
+              <tr><th>Report</th><th>Zielgruppe</th><th>Format</th><th>Status</th></tr>
+              <tr><td>Projektbericht</td><td>Intern</td><td>PDF</td><td><span class="badge green">Aktuell</span></td></tr>
+              <tr><td>Status-Update</td><td>Stakeholder</td><td>PDF</td><td><span class="badge amber">Entwurf</span></td></tr>
+              <tr><td>Lessons Learned</td><td>Team</td><td>PDF</td><td><span class="badge purple">Bereit</span></td></tr>
+            </table>
+          </section>
+          <aside class="panel side-panel">
+            <h2>KI-Zusammenfassung</h2>
+            <p>Fusion hat aus Core Flow, Werkzeugkasten und Kommunikation einen aktualisierten Projektbericht vorbereitet.</p>
+            <button data-command="Zusammenfassung aktualisieren" type="button">Aktualisieren</button>
+          </aside>
+        </div>
+      </section>
+
+      <section class="screen" id="projects">
+        <div class="page-title">
+          <div>
+            <h1>Projekte</h1>
+            <p>Zentrale Übersicht über Projektstatus, Fortschritt, Risiken und nächste Schritte.</p>
+          </div>
+          <button class="create-btn" data-create="project" type="button">+ Neues Projekt</button>
+        </div>
+
+        <div class="project-kpi-grid">
+          <article class="stat-card"><div class="stat-icon green"></div><strong>7</strong><span>Aktive Projekte</span><small>+1 seit letzter Woche</small></article>
+          <article class="stat-card"><div class="stat-ring">68%</div><span>Ø Fortschritt</span><small>über alle aktiven Projekte</small></article>
+          <article class="stat-card"><div class="stat-icon amber"></div><strong>5</strong><span>Offene Risiken</span><small>2 kritisch</small></article>
+          <article class="stat-card"><div class="stat-icon purple"></div><strong>9</strong><span>Deadlines</span><small>3 diese Woche</small></article>
+        </div>
+
+        <div class="work-layout">
+          <section class="panel work-main">
+            <div class="work-tabs">
+              <button class="active" type="button">Aktiv</button>
+              <button type="button">In Planung</button>
+              <button type="button">Abgeschlossen</button>
+              <button type="button">Kritisch</button>
+            </div>
+            <div class="project-card-grid">
+              <article class="project-work-card">
+                <div class="project-card-top"><span class="project-dot"></span><span class="badge green">Aktiv</span></div>
+                <h2>Nachhaltigkeits-Workshop</h2>
+                <p>Interaktive Workshop-Reihe für Jugendliche mit Fokus auf Bildung und Nachhaltigkeit.</p>
+                <div class="bar"><span style="width: 75%"></span></div>
+                <div class="project-meta"><span>75% Fortschritt</span><span>15. Mai 2025</span></div>
+                <div class="project-card-bottom"><div class="faces"><span></span><span></span><span></span><b>+2</b></div><span class="badge red">Hoch</span></div>
+              </article>
+              <article class="project-work-card">
+                <div class="project-card-top"><span class="project-dot blue"></span><span class="badge green">Aktiv</span></div>
+                <h2>Produktlaunch Kampagne</h2>
+                <p>Marketing- und Kommunikationsplanung für den nächsten Produktlaunch.</p>
+                <div class="bar"><span style="width: 40%"></span></div>
+                <div class="project-meta"><span>40% Fortschritt</span><span>30. Mai 2025</span></div>
+                <div class="project-card-bottom"><div class="faces"><span></span><span></span><b>+3</b></div><span class="badge amber">Mittel</span></div>
+              </article>
+              <article class="project-work-card">
+                <div class="project-card-top"><span class="project-dot violet"></span><span class="badge green">Aktiv</span></div>
+                <h2>Kundenfeedback Analyse</h2>
+                <p>Auswertung von Nutzerfeedback, Interviews und priorisierten Erkenntnissen.</p>
+                <div class="bar"><span style="width: 90%"></span></div>
+                <div class="project-meta"><span>90% Fortschritt</span><span>05. Juni 2025</span></div>
+                <div class="project-card-bottom"><div class="faces"><span></span><span></span></div><span class="badge green">Niedrig</span></div>
+              </article>
+              <article class="project-work-card">
+                <div class="project-card-top"><span class="project-dot amber"></span><span class="badge amber">In Planung</span></div>
+                <h2>Team-Event Q2</h2>
+                <p>Interne Teamveranstaltung mit Agenda, Budgetplanung und Verantwortlichkeiten.</p>
+                <div class="bar"><span style="width: 20%"></span></div>
+                <div class="project-meta"><span>20% Fortschritt</span><span>20. Juni 2025</span></div>
+                <div class="project-card-bottom"><div class="faces"><span></span><span></span></div><span class="badge green">Niedrig</span></div>
+              </article>
+            </div>
+          </section>
+
+          <aside class="work-side">
+            <section class="panel side-panel">
+              <h2>Co-Pilot Aktionen</h2>
+              <div class="calendar-ai-actions">
+                <button data-command="Projekt zusammenfassen" type="button">Projekt zusammenfassen</button>
+                <button data-command="Risiken analysieren" type="button">Risiken analysieren</button>
+                <button data-command="Nächste Schritte generieren" type="button">Nächste Schritte generieren</button>
+                <button data-command="Projektstatus bewerten" type="button">Projektstatus bewerten</button>
+              </div>
+            </section>
+            <section class="panel side-panel">
+              <h2>Letzte Aktivitäten</h2>
+              <ul class="activity-list">
+                <li><strong>Agenda aktualisiert</strong><span>Nachhaltigkeits-Workshop · vor 18 Min.</span></li>
+                <li><strong>Budgetrisiko markiert</strong><span>Produktlaunch · vor 1 Std.</span></li>
+                <li><strong>Feedbackbericht hochgeladen</strong><span>Kundenfeedback · gestern</span></li>
+              </ul>
+            </section>
+            <section class="panel side-panel">
+              <h2>Wichtige Updates</h2>
+              <p>2 Projekte brauchen heute eine Entscheidung. Der Nachhaltigkeits-Workshop ist überfällig und sollte priorisiert werden.</p>
+            </section>
+            <section class="panel side-panel">
+              <h2>Nächste Schritte</h2>
+              <ul class="calendar-task-list">
+                <li><strong>Workshop Agenda finalisieren</strong><span>Owner: Lisa</span></li>
+                <li><strong>Stakeholder Update senden</strong><span>Owner: Alex</span></li>
+                <li><strong>Risiko-Review durchführen</strong><span>Owner: Anna</span></li>
+              </ul>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <section class="screen" id="tasks">
+        <div class="page-title">
+          <div>
+            <h1>Aufgaben</h1>
+            <p>Teamaufgaben, Verantwortlichkeiten, Deadlines und Projektzuordnung in einem Arbeitsbereich.</p>
+          </div>
+          <button class="create-btn" data-create="task" type="button">+ Neue Aufgabe</button>
+        </div>
+
+        <div class="work-layout">
+          <section class="panel work-main">
+            <div class="work-tabs">
+              <button class="active" type="button">Alle</button>
+              <button type="button">Offen</button>
+              <button type="button">In Bearbeitung</button>
+              <button type="button">Erledigt</button>
+              <button type="button">Überfällig</button>
+            </div>
+            <table class="work-table">
+              <thead>
+                <tr><th>Aufgabe</th><th>Priorität</th><th>Status</th><th>Deadline</th><th>Verantwortlich</th><th>Projekt</th></tr>
+              </thead>
+              <tbody id="taskTableBody">
+                <tr><td><strong>Workshop Agenda finalisieren</strong><span>Abhängig vom Kick-off Meeting</span></td><td><span class="badge red">Hoch</span></td><td><span class="badge purple">Offen</span></td><td>16. Mai 2025</td><td>Lisa Hoffmann</td><td>Nachhaltigkeits-Workshop</td></tr>
+                <tr><td><strong>Datenanalyse durchführen</strong><span>Feedbackdaten auswerten</span></td><td><span class="badge amber">Mittel</span></td><td><span class="badge amber">In Bearbeitung</span></td><td>17. Mai 2025</td><td>Thomas Becker</td><td>Kundenfeedback Analyse</td></tr>
+                <tr><td><strong>Präsentation vorbereiten</strong><span>Kick-off Folien finalisieren</span></td><td><span class="badge red">Hoch</span></td><td><span class="badge purple">Offen</span></td><td>20. Mai 2025</td><td>Anna Weber</td><td>Produktlaunch Kampagne</td></tr>
+                <tr><td><strong>Budgetübersicht erstellen</strong><span>Freigabe für Ressourcen</span></td><td><span class="badge amber">Mittel</span></td><td><span class="badge purple">Offen</span></td><td>22. Mai 2025</td><td>Alex Müller</td><td>Produktlaunch Kampagne</td></tr>
+                <tr><td><strong>Materialien sammeln</strong><span>Workshop-Material vorbereiten</span></td><td><span class="badge green">Niedrig</span></td><td><span class="badge green">Erledigt</span></td><td>23. Mai 2025</td><td>Sophie Wagner</td><td>Nachhaltigkeits-Workshop</td></tr>
+              </tbody>
+            </table>
+
+            <div class="kanban-preview">
+              <article id="kanbanOpen"><h2>Offen</h2><div>Workshop Agenda finalisieren</div><div>Budgetübersicht erstellen</div></article>
+              <article id="kanbanProgress"><h2>In Bearbeitung</h2><div>Datenanalyse durchführen</div></article>
+              <article id="kanbanDone"><h2>Erledigt</h2><div>Materialien sammeln</div></article>
+            </div>
+          </section>
+
+          <aside class="work-side">
+            <section class="panel side-panel">
+              <h2>Co-Pilot Aktionen</h2>
+              <div class="calendar-ai-actions">
+                <button data-command="Aufgabe priorisieren" type="button">Aufgabe priorisieren</button>
+                <button data-command="Deadline vorschlagen" type="button">Deadline vorschlagen</button>
+                <button data-command="Aufgabe zusammenfassen" type="button">Aufgabe zusammenfassen</button>
+                <button data-command="Verantwortliche Person empfehlen" type="button">Verantwortliche Person empfehlen</button>
+              </div>
+            </section>
+            <section class="panel task-detail">
+              <h2>Aufgabendetails</h2>
+              <h3>Workshop Agenda finalisieren</h3>
+              <p>Erstelle eine detaillierte Agenda für den Workshop inklusive Zeitplan, Themen und Verantwortlichkeiten.</p>
+              <div class="detail-grid"><span>Priorität</span><strong>Hoch</strong><span>Status</span><strong>Offen</strong><span>Deadline</span><strong>16. Mai 2025</strong></div>
+            </section>
+            <section class="panel side-panel">
+              <h2>Kommentare</h2>
+              <ul class="activity-list">
+                <li><strong>Sophie Wagner</strong><span>Bitte Feedbackblock ergänzen.</span></li>
+                <li><strong>Thomas Becker</strong><span>Budgetzeitfenster beachten.</span></li>
+              </ul>
+            </section>
+            <section class="panel side-panel">
+              <h2>Anhänge</h2>
+              <div class="shared-file"><strong>Agenda_Entwurf.docx</strong><span>DOCX · 1.2 MB</span></div>
+              <div class="shared-file"><strong>Workshop_Anforderungen.pdf</strong><span>PDF · 856 KB</span></div>
+            </section>
+            <section class="panel side-panel">
+              <h2>Aktivitätsverlauf</h2>
+              <ul class="activity-list">
+                <li><strong>Status geändert</strong><span>Auf Offen gesetzt · vor 2 Std.</span></li>
+                <li><strong>Datei hinzugefügt</strong><span>Agenda_Entwurf.docx · gestern</span></li>
+              </ul>
+            </section>
+          </aside>
+        </div>
+      </section>
+      <section class="screen" id="calendar">
+        <div class="page-title">
+          <div>
+            <h1>Kalender</h1>
+            <p>Projekttermine, Aufgaben, Deadlines und Team-Verfügbarkeit in einer gemeinsamen Planungsansicht.</p>
+          </div>
+          <button class="create-btn" data-create="event" type="button">+ Neuer Termin</button>
+        </div>
+
+        <div class="calendar-layout">
+          <section class="panel calendar-main">
+            <div class="calendar-toolbar">
+              <div class="calendar-nav">
+                <button type="button">‹</button>
+                <strong>Mai 2025</strong>
+                <button type="button">›</button>
+                <button type="button">Heute</button>
+              </div>
+              <div class="calendar-view-switch">
+                <button type="button">Tag</button>
+                <button class="active" type="button">Woche</button>
+                <button type="button">Monat</button>
+              </div>
+            </div>
+
+            <div class="calendar-create-strip">
+              <button data-create="event" type="button">Termin erstellen</button>
+              <button data-create="task" type="button">Aufgabe planen</button>
+              <button data-create="deadline" type="button">Deadline setzen</button>
+              <button data-create="recurring" type="button">Wiederkehrend</button>
+            </div>
+
+            <div class="week-calendar" aria-label="Wochenkalender">
+              <div class="time-col"></div>
+              <div class="day-head">Mo <strong>12</strong></div>
+              <div class="day-head">Di <strong>13</strong></div>
+              <div class="day-head">Mi <strong>14</strong></div>
+              <div class="day-head today">Do <strong>15</strong></div>
+              <div class="day-head">Fr <strong>16</strong></div>
+              <div class="day-head">Sa <strong>17</strong></div>
+              <div class="day-head">So <strong>18</strong></div>
+
+              <div class="time-slot">08:00</div>
+              <div class="day-cell"></div>
+              <div class="day-cell"></div>
+              <div class="day-cell"><article class="cal-event project-blue small"><strong>Dokument prüfen</strong><span>08:30 · Lisa</span></article></div>
+              <div class="day-cell today-cell" id="generatedCalendarCell"></div>
+              <div class="day-cell"></div>
+              <div class="day-cell"></div>
+              <div class="day-cell"></div>
+
+              <div class="time-slot">09:00</div>
+              <div class="day-cell"></div>
+              <div class="day-cell"><article class="cal-event project-green"><strong>Stakeholder Call</strong><span>09:00 · Anna, Sophie</span><em>Nachhaltigkeits-Workshop</em></article></div>
+              <div class="day-cell"></div>
+              <div class="day-cell today-cell"><article class="cal-event priority-high"><strong>Workshop Agenda finalisieren</strong><span>09:00 - 11:00 · Lisa</span><em>Deadline heute</em></article></div>
+              <div class="day-cell"></div>
+              <div class="day-cell"></div>
+              <div class="day-cell"></div>
+
+              <div class="time-slot">11:00</div>
+              <div class="day-cell"></div>
+              <div class="day-cell"></div>
+              <div class="day-cell"></div>
+              <div class="day-cell today-cell"><article class="cal-event project-purple"><strong>Team Meeting</strong><span>11:30 - 12:30 · Team Core</span><em>wöchentlich</em></article></div>
+              <div class="day-cell"><article class="cal-event project-amber small"><strong>Budgetfreigabe</strong><span>11:00 · Thomas</span></article></div>
+              <div class="day-cell"></div>
+              <div class="day-cell"></div>
+
+              <div class="time-slot">13:00</div>
+              <div class="day-cell"></div>
+              <div class="day-cell"></div>
+              <div class="day-cell"><article class="cal-event priority-medium"><strong>Feedbackrunde</strong><span>13:15 · Stakeholder</span></article></div>
+              <div class="day-cell today-cell"><article class="cal-event project-amber"><strong>Kundenfeedback auswerten</strong><span>13:00 - 14:00 · Sophie</span><em>Kundenfeedback Analyse</em></article></div>
+              <div class="day-cell"></div>
+              <div class="day-cell"></div>
+              <div class="day-cell"></div>
+
+              <div class="time-slot">15:00</div>
+              <div class="day-cell"></div>
+              <div class="day-cell"></div>
+              <div class="day-cell"></div>
+              <div class="day-cell today-cell"><article class="cal-event project-green"><strong>Präsentation vorbereiten</strong><span>15:00 - 16:00 · Anna</span><em>Produktlaunch Kampagne</em></article></div>
+              <div class="day-cell"><article class="cal-event priority-high"><strong>Workshop Deadline</strong><span>16:00 · überfällig prüfen</span></article></div>
+              <div class="day-cell"></div>
+              <div class="day-cell"></div>
+            </div>
+
+            <div class="calendar-legend">
+              <span><i class="legend-dot high"></i>Hohe Priorität</span>
+              <span><i class="legend-dot medium"></i>Mittel</span>
+              <span><i class="legend-dot green"></i>Nachhaltigkeits-Workshop</span>
+              <span><i class="legend-dot purple"></i>Team / Wiederkehrend</span>
+            </div>
+          </section>
+
+          <aside class="calendar-sidebar">
+            <section class="panel calendar-side-card">
+              <h2>Co-Pilot Planung</h2>
+              <div class="calendar-ai-actions">
+                <button data-command="Meeting planen" type="button">Meeting planen</button>
+                <button data-command="Freien Termin finden" type="button">Freien Termin finden</button>
+                <button data-command="Agenda erstellen" type="button">Agenda erstellen</button>
+                <button data-command="Teilnehmer vorschlagen" type="button">Teilnehmer vorschlagen</button>
+                <button data-command="Konflikte erkennen" type="button">Konflikte erkennen</button>
+              </div>
+            </section>
+
+            <section class="panel calendar-side-card">
+              <div class="panel-head">
+                <h2>Heutige Aufgaben</h2>
+                <span class="badge purple">4</span>
+              </div>
+              <ul class="calendar-task-list">
+                <li><strong>Workshop Agenda finalisieren</strong><span>09:00 · Lisa Hoffmann</span></li>
+                <li><strong>Team Meeting</strong><span>11:30 · Team Core</span></li>
+                <li><strong>Kundenfeedback auswerten</strong><span>13:00 · Sophie Wagner</span></li>
+                <li><strong>Präsentation vorbereiten</strong><span>15:00 · Anna Weber</span></li>
+              </ul>
+            </section>
+
+            <section class="panel calendar-side-card">
+              <h2>Kommende Deadlines</h2>
+              <div class="deadline-list">
+                <article><strong>Budgetfreigabe</strong><span>Morgen · Produktlaunch</span><em>Hoch</em></article>
+                <article><strong>Workshop Material</strong><span>20. Mai · Nachhaltigkeit</span><em>Mittel</em></article>
+                <article><strong>Q2 Report</strong><span>24. Mai · Management</span><em>Niedrig</em></article>
+              </div>
+            </section>
+
+            <section class="panel calendar-side-card">
+              <h2>Team-Verfügbarkeit</h2>
+              <div class="availability-list">
+                <div><span class="person"></span><strong>Anna Weber</strong><em>frei ab 14:00</em></div>
+                <div><span class="person dark"></span><strong>Lisa Hoffmann</strong><em>belegt bis 11:00</em></div>
+                <div><span class="person group"></span><strong>Team Marketing</strong><em>2 Konflikte</em></div>
+              </div>
+            </section>
+
+            <section class="panel calendar-side-card">
+              <h2>Offene Meetings</h2>
+              <div class="meeting-list">
+                <article><strong>Feedback mit Sophie</strong><span>Teilnehmer fehlen</span></article>
+                <article><strong>Stakeholder Review</strong><span>Termin nicht bestätigt</span></article>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </section>
+      <section class="screen" id="files">
+        <div class="page-title">
+          <div>
+            <h1>Dateien</h1>
+            <p>Intelligente Dokumentenverwaltung mit KI-Analyse, Projektbezug und wiederverwendbarem Kontext.</p>
+          </div>
+          <button class="create-btn" data-create="file" type="button">+ Datei hochladen</button>
+        </div>
+
+        <div class="work-layout">
+          <section class="panel work-main">
+            <div class="file-toolbar">
+              <label class="chat-search"><span></span><input type="search" placeholder="Dateien, Themen oder Personen suchen" /></label>
+              <div class="work-tabs">
+                <button class="active" type="button">Alle</button>
+                <button type="button">PDFs</button>
+                <button type="button">Bilder</button>
+                <button type="button">Dokumente</button>
+                <button type="button">Zuletzt verwendet</button>
+              </div>
+            </div>
+            <div class="upload-zone">
+              <strong>Dateien hier ablegen</strong>
+              <span>Drag & Drop, mehrere Dateien gleichzeitig oder manuell hochladen</span>
+              <button data-create="file" type="button">Datei hochladen</button>
+            </div>
+            <table class="work-table">
+              <thead>
+                <tr><th>Dateiname</th><th>Typ</th><th>Projektbezug</th><th>Upload-Datum</th><th>Status</th><th>Besitzer</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Workshop_Dokument_v2.docx</strong><span>Agenda und Inhalte</span></td><td>DOCX</td><td>Nachhaltigkeits-Workshop</td><td>Heute</td><td><span class="badge green">Analysiert</span></td><td>Lisa Hoffmann</td></tr>
+                <tr><td><strong>Agenda_Entwurf.pdf</strong><span>Programmstruktur</span></td><td>PDF</td><td>Nachhaltigkeits-Workshop</td><td>14. Mai</td><td><span class="badge amber">Prüfung</span></td><td>Sophie Wagner</td></tr>
+                <tr><td><strong>Feedback_Rohdaten.xlsx</strong><span>Umfrageergebnisse</span></td><td>XLSX</td><td>Kundenfeedback Analyse</td><td>12. Mai</td><td><span class="badge purple">KI bereit</span></td><td>Thomas Becker</td></tr>
+                <tr><td><strong>Stakeholder_Map.png</strong><span>Zielgruppenübersicht</span></td><td>Bild</td><td>Produktlaunch Kampagne</td><td>10. Mai</td><td><span class="badge green">Indexiert</span></td><td>Anna Weber</td></tr>
+              </tbody>
+            </table>
+          </section>
+
+          <aside class="work-side">
+            <section class="panel side-panel">
+              <h2>Co-Pilot Funktionen</h2>
+              <div class="calendar-ai-actions">
+                <button data-command="Dokument analysieren" type="button">Dokument analysieren</button>
+                <button data-command="Zusammenfassung erstellen" type="button">Zusammenfassung erstellen</button>
+                <button data-command="Risiken erkennen" type="button">Risiken erkennen</button>
+                <button data-command="Wichtige Inhalte extrahieren" type="button">Wichtige Inhalte extrahieren</button>
+              </div>
+            </section>
+            <section class="panel document-preview">
+              <h2>Dokumentvorschau</h2>
+              <div class="preview-page">
+                <strong>Workshop_Dokument_v2.docx</strong>
+                <span>Agenda, Ziele, Methoden und offene Punkte wurden erkannt.</span>
+              </div>
+            </section>
+            <section class="panel side-panel">
+              <h2>KI-Analyse</h2>
+              <p>Das Dokument enthält 3 Zielgruppen, 5 Aufgaben, 2 Risiken und einen fehlenden Feedbackblock.</p>
+            </section>
+            <section class="panel side-panel">
+              <h2>Schlagwörter</h2>
+              <div class="tag-cloud"><span>Nachhaltigkeit</span><span>Workshop</span><span>Jugendliche</span><span>Agenda</span><span>Risiko</span></div>
+            </section>
+            <section class="panel side-panel">
+              <h2>Erkannte Themen</h2>
+              <ul class="calendar-task-list">
+                <li><strong>Zielgruppenanalyse</strong><span>Studierende, Schulen, Jugendzentren</span></li>
+                <li><strong>Methodenplanung</strong><span>World Cafe, Gruppenarbeit</span></li>
+                <li><strong>Beteiligte Personen</strong><span>Lisa, Sophie, Anna</span></li>
+              </ul>
+            </section>
+          </aside>
+        </div>
+      </section>
+      <section class="screen" id="templates">
+        <div class="page-title">
+          <div>
+            <h1>Vorlagen</h1>
+            <p>Wiederverwendbare Planungs-Templates für Beteiligungsformate, Workshops, Analysen und Reports.</p>
+          </div>
+          <button class="create-btn" data-command="Neue Vorlage aus Core Flow erzeugen" type="button">+ Neue Vorlage</button>
+        </div>
+
+        <div class="project-kpi-grid template-kpi-grid">
+          <article class="stat-card"><div class="stat-icon purple"></div><strong>28</strong><span>Vorlagen</span><small>im Team verfügbar</small></article>
+          <article class="stat-card"><div class="stat-icon green"></div><strong>143</strong><span>Nutzungen</span><small>in aktiven Projekten</small></article>
+          <article class="stat-card"><div class="stat-icon amber"></div><strong>9</strong><span>KI-optimiert</span><small>aus Core Flow erzeugt</small></article>
+          <article class="stat-card"><div class="stat-ring">86%</div><span>Wiederverwendung</span><small>spart Planungszeit</small></article>
+        </div>
+
+        <div class="work-layout">
+          <section class="panel work-main template-library">
+            <div class="file-toolbar">
+              <label class="chat-search"><span></span><input type="search" placeholder="Vorlagen, Formate oder Themen suchen" /></label>
+              <div class="work-tabs">
+                <button class="active" type="button">Alle</button>
+                <button type="button">Workshop</button>
+                <button type="button">Agenda</button>
+                <button type="button">Analyse</button>
+                <button type="button">Report</button>
+              </div>
+            </div>
+
+            <div class="template-feature">
+              <div>
+                <span class="badge purple">Empfohlen</span>
+                <h2>Beteiligungsprojekt schneller starten</h2>
+                <p>Wähle eine Vorlage oder lasse den Co-Pilot aus deinem Core Flow eine neue Projektstruktur erzeugen.</p>
+              </div>
+              <button data-command="Neue Vorlage aus Core Flow erzeugen" type="button">Aus Core Flow erzeugen</button>
+            </div>
+
+            <div class="project-card-grid template-card-grid">
+              <article class="project-work-card template-card">
+                <div class="project-card-top"><span class="project-dot"></span><span class="badge green">Workshop</span></div>
+                <h2>Beteiligungs-Workshop Vorlage</h2>
+                <p>Struktur für Zielklärung, Aktivierung, Gruppenarbeit, Ergebnisdokumentation und Follow-up.</p>
+                <div class="template-meta-grid"><span>Aktualisiert: Heute</span><span>42x genutzt</span></div>
+                <div class="project-card-bottom"><span class="badge purple">KI bereit</span><button data-command="Vorlage anpassen lassen" type="button">Anpassen</button></div>
+              </article>
+
+              <article class="project-work-card template-card">
+                <div class="project-card-top"><span class="project-dot violet"></span><span class="badge amber">Analyse</span></div>
+                <h2>Stakeholder-Analyse Vorlage</h2>
+                <p>Matrix für Einfluss, Betroffenheit, Kommunikationsbedarf und Beteiligungsgrad je Zielgruppe.</p>
+                <div class="template-meta-grid"><span>Aktualisiert: Gestern</span><span>31x genutzt</span></div>
+                <div class="project-card-bottom"><span class="badge green">Validiert</span><button data-command="Stakeholder Vorlage anpassen" type="button">Anpassen</button></div>
+              </article>
+
+              <article class="project-work-card template-card">
+                <div class="project-card-top"><span class="project-dot blue"></span><span class="badge purple">Agenda</span></div>
+                <h2>Projekt-Kickoff Agenda</h2>
+                <p>90-Minuten Ablauf für Rollenklärung, Ziele, Risiken, Meilensteine und nächste Entscheidungen.</p>
+                <div class="template-meta-grid"><span>Aktualisiert: 12. Mai</span><span>26x genutzt</span></div>
+                <div class="project-card-bottom"><span class="badge purple">Core Flow kompatibel</span><button data-command="Agenda erstellen" type="button">Nutzen</button></div>
+              </article>
+
+              <article class="project-work-card template-card">
+                <div class="project-card-top"><span class="project-dot amber"></span><span class="badge green">Report</span></div>
+                <h2>Feedback-Auswertung Vorlage</h2>
+                <p>Auswertung für Umfragen, offene Antworten, Stimmungsbild, Learnings und Maßnahmenableitung.</p>
+                <div class="template-meta-grid"><span>Aktualisiert: 08. Mai</span><span>18x genutzt</span></div>
+                <div class="project-card-bottom"><span class="badge amber">Review empfohlen</span><button data-command="Feedback Report vorbereiten" type="button">Nutzen</button></div>
+              </article>
+
+              <article class="project-work-card template-card">
+                <div class="project-card-top"><span class="project-dot"></span><span class="badge green">Workshop</span></div>
+                <h2>Nachhaltigkeits-Workshop Vorlage</h2>
+                <p>Praxisnahes Format mit Methoden, Materialliste, Moderationshinweisen und Nachhaltigkeits-Check.</p>
+                <div class="template-meta-grid"><span>Aktualisiert: 06. Mai</span><span>37x genutzt</span></div>
+                <div class="project-card-bottom"><span class="badge green">Beliebt</span><button data-command="Nachhaltigkeits-Workshop Vorlage nutzen" type="button">Nutzen</button></div>
+              </article>
+
+              <article class="project-work-card template-card">
+                <div class="project-card-top"><span class="project-dot blue"></span><span class="badge amber">Planung</span></div>
+                <h2>Veranstaltungs-Roadmap</h2>
+                <p>Meilensteine, Verantwortlichkeiten, Kommunikationsfenster und Freigaben für Beteiligungsevents.</p>
+                <div class="template-meta-grid"><span>Aktualisiert: 30. Apr.</span><span>22x genutzt</span></div>
+                <div class="project-card-bottom"><span class="badge purple">Agentisch</span><button data-command="Roadmap Vorlage anpassen" type="button">Anpassen</button></div>
+              </article>
+            </div>
+          </section>
+
+          <aside class="work-side">
+            <section class="panel side-panel template-copilot-panel">
+              <h2>Co-Pilot Support</h2>
+              <p>Der Co-Pilot kann Vorlagen an dein Projektziel, deine Zielgruppe und die Core-Flow-Antworten anpassen.</p>
+              <div class="calendar-ai-actions">
+                <button data-command="Vorlage anpassen lassen" type="button">Vorlage anpassen lassen</button>
+                <button data-command="Neue Vorlage aus Core Flow erzeugen" type="button">Neue Vorlage aus Core Flow erzeugen</button>
+                <button data-command="Agenda aus Vorlage erstellen" type="button">Agenda aus Vorlage erstellen</button>
+                <button data-command="Template Risiken analysieren" type="button">Risiken in Vorlage erkennen</button>
+              </div>
+            </section>
+
+            <section class="panel side-panel">
+              <h2>Zuletzt genutzt</h2>
+              <ul class="activity-list">
+                <li><strong>Beteiligungs-Workshop Vorlage</strong><span>Nachhaltigkeits-Workshop · vor 12 Min.</span></li>
+                <li><strong>Stakeholder-Analyse Vorlage</strong><span>Projekt-Kickoff · gestern</span></li>
+                <li><strong>Feedback-Auswertung Vorlage</strong><span>Kundenfeedback Analyse · 12. Mai</span></li>
+              </ul>
+            </section>
+
+            <section class="panel side-panel">
+              <h2>Core Flow Verbindung</h2>
+              <p>9 Vorlagen wurden bereits aus abgeschlossenen Core Flows erzeugt. Häufige Bausteine: Zielgruppen, Risiken, Agenda und Reportstruktur.</p>
+              <div class="tag-cloud"><span>Zielgruppen</span><span>Risiken</span><span>Agenda</span><span>Checklisten</span><span>Reports</span></div>
+            </section>
+
+            <section class="panel side-panel">
+              <h2>Team-Empfehlungen</h2>
+              <ul class="calendar-task-list">
+                <li><strong>Für Workshops</strong><span>Beteiligungs-Workshop Vorlage</span></li>
+                <li><strong>Für Planung</strong><span>Veranstaltungs-Roadmap</span></li>
+                <li><strong>Für Ergebnisse</strong><span>Feedback-Auswertung Vorlage</span></li>
+              </ul>
+            </section>
+          </aside>
+        </div>
+      </section>
+      <section class="screen" id="timeline">
+        <div class="page-title">
+          <div>
+            <h1>Projektzeitplan</h1>
+            <p>Roadmap für laufende Beteiligungsformate mit Meilensteinen, Status und Risiko-Hinweisen.</p>
+          </div>
+          <button class="create-btn" data-create="event" type="button">+ Meilenstein</button>
+        </div>
+
+        <div class="project-kpi-grid timeline-kpi-grid">
+          <article class="stat-card"><div class="stat-icon green"></div><strong>2</strong><span>Aktive Events</span><small>Workshop und Team-Event</small></article>
+          <article class="stat-card"><div class="stat-ring">62%</div><span>Roadmap Fortschritt</span><small>über beide Events</small></article>
+          <article class="stat-card"><div class="stat-icon amber"></div><strong>3</strong><span>Diese Woche</span><small>Planung, Review, Freigabe</small></article>
+          <article class="stat-card"><div class="stat-icon red"></div><strong>2</strong><span>At Risk</span><small>Risiko-Agent beobachtet</small></article>
+        </div>
+
+        <div class="timeline-layout">
+          <section class="panel timeline-main">
+            <div class="calendar-toolbar">
+              <div class="calendar-nav">
+                <button type="button">‹</button>
+                <strong>Mai - Juni 2025</strong>
+                <button type="button">›</button>
+                <button type="button">Heute</button>
+              </div>
+              <div class="calendar-view-switch">
+                <button class="active" type="button">Wochen</button>
+                <button type="button">Monat</button>
+                <button type="button">Quartal</button>
+              </div>
+            </div>
+
+            <div class="timeline-legend">
+              <span><i class="timeline-dot done"></i>Erledigt</span>
+              <span><i class="timeline-dot progress"></i>In Arbeit</span>
+              <span><i class="timeline-dot upcoming"></i>Geplant</span>
+              <span><i class="timeline-dot risk"></i>At Risk</span>
+            </div>
+
+            <div class="roadmap">
+              <div class="roadmap-weeks">
+                <span>Woche 20<br /><small>12-18 Mai</small></span>
+                <span>Woche 21<br /><small>19-25 Mai</small></span>
+                <span>Woche 22<br /><small>26 Mai-1 Jun</small></span>
+                <span>Woche 23<br /><small>2-8 Jun</small></span>
+                <span>Woche 24<br /><small>9-15 Jun</small></span>
+                <span>Woche 25<br /><small>16-22 Jun</small></span>
+              </div>
+
+              <article class="event-roadmap workshop-track">
+                <div class="event-roadmap-head">
+                  <span class="project-dot"></span>
+                  <div>
+                    <h2>Nachhaltigkeits-Workshop</h2>
+                    <p>Interaktive Beteiligungsreihe für Jugendliche</p>
+                  </div>
+                  <span class="badge amber">In Arbeit</span>
+                </div>
+                <div class="milestone-row">
+                  <div class="milestone-card done">
+                    <span class="timeline-dot done"></span>
+                    <strong>Kickoff</strong>
+                    <small>15. Mai</small>
+                    <span class="badge green">Erledigt</span>
+                  </div>
+                  <div class="milestone-card progress span-2">
+                    <span class="timeline-dot progress"></span>
+                    <strong>Planungsphase</strong>
+                    <small>Agenda, Material, Stakeholder</small>
+                    <span class="badge amber">In Bearbeitung</span>
+                  </div>
+                  <div class="milestone-card risk">
+                    <span class="timeline-dot risk"></span>
+                    <strong>Workshop-Termin</strong>
+                    <small>10. Juni</small>
+                    <span class="badge red">At Risk</span>
+                  </div>
+                  <div class="milestone-card upcoming">
+                    <span class="timeline-dot upcoming"></span>
+                    <strong>Review</strong>
+                    <small>12. Juni</small>
+                    <span class="badge purple">Geplant</span>
+                  </div>
+                  <div class="milestone-card upcoming">
+                    <span class="timeline-dot upcoming"></span>
+                    <strong>Deadline</strong>
+                    <small>20. Juni</small>
+                    <span class="badge purple">Upcoming</span>
+                  </div>
+                </div>
+              </article>
+
+              <article class="event-roadmap team-track">
+                <div class="event-roadmap-head">
+                  <span class="project-dot amber"></span>
+                  <div>
+                    <h2>Team-Event Q2</h2>
+                    <p>Internes Event mit Agenda, Rollen und Abschlussrunde</p>
+                  </div>
+                  <span class="badge purple">Geplant</span>
+                </div>
+                <div class="milestone-row">
+                  <div class="milestone-card done">
+                    <span class="timeline-dot done"></span>
+                    <strong>Kickoff</strong>
+                    <small>20. Mai</small>
+                    <span class="badge green">Erledigt</span>
+                  </div>
+                  <div class="milestone-card progress span-2">
+                    <span class="timeline-dot progress"></span>
+                    <strong>Planung</strong>
+                    <small>Location, Ablauf, Teamrollen</small>
+                    <span class="badge amber">In Arbeit</span>
+                  </div>
+                  <div class="milestone-card upcoming">
+                    <span class="timeline-dot upcoming"></span>
+                    <strong>Event-Date</strong>
+                    <small>20. Juni</small>
+                    <span class="badge purple">Upcoming</span>
+                  </div>
+                  <div class="milestone-card risk">
+                    <span class="timeline-dot risk"></span>
+                    <strong>Budget-Freigabe</strong>
+                    <small>21. Juni</small>
+                    <span class="badge red">At Risk</span>
+                  </div>
+                  <div class="milestone-card upcoming">
+                    <span class="timeline-dot upcoming"></span>
+                    <strong>Deadline</strong>
+                    <small>22. Juni</small>
+                    <span class="badge purple">Geplant</span>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <aside class="work-side">
+            <section class="panel side-panel">
+              <h2>Risiko-Agent</h2>
+              <p>2 Meilensteine sind gefährdet: Workshop-Termin wegen Teilnahmequote und Team-Event wegen Budgetfreigabe.</p>
+              <div class="calendar-ai-actions">
+                <button data-command="Timeline Risiken analysieren" type="button">Risiken analysieren</button>
+                <button data-command="Konflikte erkennen" type="button">Konflikte erkennen</button>
+                <button data-command="Nächste Schritte generieren" type="button">Nächste Schritte generieren</button>
+              </div>
+            </section>
+
+            <section class="panel side-panel">
+              <h2>Kommende Meilensteine</h2>
+              <ul class="calendar-task-list">
+                <li><strong>Agenda finalisieren</strong><span>Nachhaltigkeits-Workshop · 18. Mai</span></li>
+                <li><strong>Teamrollen abstimmen</strong><span>Team-Event Q2 · 22. Mai</span></li>
+                <li><strong>Materialien freigeben</strong><span>Nachhaltigkeits-Workshop · 29. Mai</span></li>
+              </ul>
+            </section>
+
+            <section class="panel side-panel">
+              <h2>At-Risk Items</h2>
+              <ul class="activity-list">
+                <li><strong>Teilnahmequote unsicher</strong><span>Risiko-Agent empfiehlt Reminder und Partnerkanäle.</span></li>
+                <li><strong>Budget-Freigabe offen</strong><span>Team-Event Q2 · Entscheidung bis 21. Juni.</span></li>
+              </ul>
+            </section>
+
+            <section class="panel side-panel">
+              <h2>Event-Fokus</h2>
+              <div class="tag-cloud"><span>Nachhaltigkeits-Workshop</span><span>Team-Event Q2</span><span>Review</span><span>Deadline</span></div>
+            </section>
+          </aside>
+        </div>
+      </section>
+      <section class="screen" id="management">
+        <div class="page-title">
+          <div>
+            <h1>Aufgabenmanagement</h1>
+            <p>Aufgaben, Rollen und Prioritäten für beide anstehenden Team-Events.</p>
+          </div>
+          <div class="screen-summary"><span class="badge purple">8 Aufgaben</span><span class="badge amber">2 in Review</span></div>
+        </div>
+
+        <section class="management-board" aria-label="Kanban Board Aufgabenmanagement">
+          <article class="management-column">
+            <div class="management-column-head"><h2>Offen</h2><span>2</span></div>
+            <article class="management-task-card">
+              <div class="task-card-top"><span class="badge red">Hoch</span><span class="badge purple">Owner</span></div>
+              <h3>Agenda und Ablauf finalisieren</h3>
+              <span class="event-tag workshop">Nachhaltigkeits-Workshop</span>
+              <div class="task-assignee"><span class="member-avatar anna">AW</span><div><strong>Anna Weber</strong><small>Event Lead</small></div></div>
+            </article>
+            <article class="management-task-card">
+              <div class="task-card-top"><span class="badge amber">Mittel</span><span class="badge green">Contributor</span></div>
+              <h3>Location-Optionen abstimmen</h3>
+              <span class="event-tag team-event">Team-Event Q2</span>
+              <div class="task-assignee"><span class="member-avatar lisa">LH</span><div><strong>Lisa Hoffmann</strong><small>Event Operations</small></div></div>
+            </article>
+          </article>
+
+          <article class="management-column">
+            <div class="management-column-head"><h2>In Arbeit</h2><span>2</span></div>
+            <article class="management-task-card">
+              <div class="task-card-top"><span class="badge amber">Mittel</span><span class="badge green">Contributor</span></div>
+              <h3>Teilnehmenden-Kommunikation</h3>
+              <span class="event-tag workshop">Nachhaltigkeits-Workshop</span>
+              <div class="task-assignee"><span class="member-avatar sophie">SW</span><div><strong>Sophie Wagner</strong><small>Kommunikation</small></div></div>
+            </article>
+            <article class="management-task-card">
+              <div class="task-card-top"><span class="badge red">Hoch</span><span class="badge purple">Owner</span></div>
+              <h3>Teamprogramm koordinieren</h3>
+              <span class="event-tag team-event">Team-Event Q2</span>
+              <div class="task-assignee"><span class="member-avatar alex">AM</span><div><strong>Alex Müller</strong><small>Projektmanager</small></div></div>
+            </article>
+          </article>
+
+          <article class="management-column">
+            <div class="management-column-head"><h2>Review</h2><span>2</span></div>
+            <article class="management-task-card at-risk-card">
+              <div class="task-card-top"><span class="badge red">Hoch</span><span class="badge green">Contributor</span></div>
+              <h3>Budget und Catering prüfen</h3>
+              <span class="event-tag workshop">Nachhaltigkeits-Workshop</span>
+              <div class="task-assignee"><span class="member-avatar thomas">TB</span><div><strong>Thomas Becker</strong><small>Finanzen</small></div></div>
+            </article>
+            <article class="management-task-card">
+              <div class="task-card-top"><span class="badge amber">Mittel</span><span class="badge green">Contributor</span></div>
+              <h3>Moderationskonzept prüfen</h3>
+              <span class="event-tag team-event">Team-Event Q2</span>
+              <div class="task-assignee"><span class="member-avatar anna">AW</span><div><strong>Anna Weber</strong><small>Event Lead</small></div></div>
+            </article>
+          </article>
+
+          <article class="management-column">
+            <div class="management-column-head"><h2>Erledigt</h2><span>2</span></div>
+            <article class="management-task-card task-complete">
+              <div class="task-card-top"><span class="badge green">Niedrig</span><span class="badge green">Contributor</span></div>
+              <h3>Workshop-Materialien sammeln</h3>
+              <span class="event-tag workshop">Nachhaltigkeits-Workshop</span>
+              <div class="task-assignee"><span class="member-avatar lisa">LH</span><div><strong>Lisa Hoffmann</strong><small>Event Operations</small></div></div>
+            </article>
+            <article class="management-task-card task-complete">
+              <div class="task-card-top"><span class="badge green">Niedrig</span><span class="badge green">Contributor</span></div>
+              <h3>Save-the-Date versenden</h3>
+              <span class="event-tag team-event">Team-Event Q2</span>
+              <div class="task-assignee"><span class="member-avatar sophie">SW</span><div><strong>Sophie Wagner</strong><small>Kommunikation</small></div></div>
+            </article>
+          </article>
+        </section>
+      </section>
+
+      <section class="screen" id="team">
+        <div class="page-title">
+          <div>
+            <h1>Personen &amp; Teams</h1>
+            <p>Teamverzeichnis mit Event-Zuordnung und aktueller Auslastung.</p>
+          </div>
+          <div class="screen-summary"><span class="badge green">5 Teammitglieder</span><span class="badge purple">2 Events</span></div>
+        </div>
+
+        <div class="team-groups">
+          <section class="panel team-group-card">
+            <div class="team-group-head"><div><span class="event-tag workshop">Event-Team</span><h2>Team Nachhaltigkeits-Workshop</h2></div><span class="badge green">Aktiv</span></div>
+            <div class="team-directory">
+              <article class="team-member-card">
+                <span class="member-avatar anna">AW</span><div class="member-copy"><h3>Anna Weber</h3><p>Event Lead · Owner</p></div>
+                <div class="workload"><span><b>Auslastung</b><strong>78%</strong></span><div class="workload-bar"><i style="width: 78%"></i></div></div>
+              </article>
+              <article class="team-member-card">
+                <span class="member-avatar lisa">LH</span><div class="member-copy"><h3>Lisa Hoffmann</h3><p>Event Operations · Contributor</p></div>
+                <div class="workload"><span><b>Auslastung</b><strong>62%</strong></span><div class="workload-bar"><i style="width: 62%"></i></div></div>
+              </article>
+              <article class="team-member-card">
+                <span class="member-avatar sophie">SW</span><div class="member-copy"><h3>Sophie Wagner</h3><p>Kommunikation · Contributor</p></div>
+                <div class="workload"><span><b>Auslastung</b><strong>70%</strong></span><div class="workload-bar"><i style="width: 70%"></i></div></div>
+              </article>
+              <article class="team-member-card">
+                <span class="member-avatar thomas">TB</span><div class="member-copy"><h3>Thomas Becker</h3><p>Finanzen · Approver</p></div>
+                <div class="workload"><span><b>Auslastung</b><strong>46%</strong></span><div class="workload-bar"><i style="width: 46%"></i></div></div>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel team-group-card">
+            <div class="team-group-head"><div><span class="event-tag team-event">Event-Team</span><h2>Team-Event Q2</h2></div><span class="badge amber">In Planung</span></div>
+            <div class="team-directory">
+              <article class="team-member-card">
+                <span class="member-avatar alex">AM</span><div class="member-copy"><h3>Alex Müller</h3><p>Projektmanager · Owner</p></div>
+                <div class="workload"><span><b>Auslastung</b><strong>82%</strong></span><div class="workload-bar high"><i style="width: 82%"></i></div></div>
+              </article>
+              <article class="team-member-card">
+                <span class="member-avatar anna">AW</span><div class="member-copy"><h3>Anna Weber</h3><p>Event Lead · Contributor</p></div>
+                <div class="workload"><span><b>Auslastung</b><strong>78%</strong></span><div class="workload-bar"><i style="width: 78%"></i></div></div>
+              </article>
+              <article class="team-member-card">
+                <span class="member-avatar lisa">LH</span><div class="member-copy"><h3>Lisa Hoffmann</h3><p>Event Operations · Contributor</p></div>
+                <div class="workload"><span><b>Auslastung</b><strong>62%</strong></span><div class="workload-bar"><i style="width: 62%"></i></div></div>
+              </article>
+              <article class="team-member-card">
+                <span class="member-avatar sophie">SW</span><div class="member-copy"><h3>Sophie Wagner</h3><p>Kommunikation · Approver</p></div>
+                <div class="workload"><span><b>Auslastung</b><strong>70%</strong></span><div class="workload-bar"><i style="width: 70%"></i></div></div>
+              </article>
+              <article class="team-member-card">
+                <span class="member-avatar thomas">TB</span><div class="member-copy"><h3>Thomas Becker</h3><p>Finanzen · Contributor</p></div>
+                <div class="workload"><span><b>Auslastung</b><strong>46%</strong></span><div class="workload-bar"><i style="width: 46%"></i></div></div>
+              </article>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="screen" id="responsibility">
+        <div class="page-title">
+          <div>
+            <h1>Verantwortlichkeiten</h1>
+            <p>Owner, Contributors und Approver für beide Events auf einen Blick.</p>
+          </div>
+          <div class="screen-summary"><span class="badge red">2 At-Risk Items</span></div>
+        </div>
+
+        <section class="panel responsibility-panel">
+          <div class="panel-head"><div><h2>Rollenübersicht</h2><p>Offene oder unklare Zuständigkeiten sind als Risiko markiert.</p></div></div>
+          <div class="responsibility-table-wrap">
+            <table class="work-table responsibility-table">
+              <thead><tr><th>Event</th><th>Owner</th><th>Contributors</th><th>Approver</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><strong>Nachhaltigkeits-Workshop</strong><span>Workshop · 15. Mai 2025</span></td>
+                  <td><strong>Anna Weber</strong><span class="badge purple">Owner</span></td>
+                  <td>Lisa Hoffmann, Sophie Wagner<span>Thomas Becker · Budget</span></td>
+                  <td><strong>Thomas Becker</strong><span>Budget &amp; Catering</span></td>
+                  <td><span class="badge green">Geklärt</span></td>
+                </tr>
+                <tr class="at-risk-row">
+                  <td><strong>Nachhaltigkeits-Workshop</strong><span>Teilnehmenden-Kommunikation</span></td>
+                  <td><strong>Anna Weber</strong><span class="badge purple">Owner</span></td>
+                  <td>Sophie Wagner<span class="badge green">Contributor</span></td>
+                  <td><strong>Noch offen</strong><span>Finale Kommunikationsfreigabe</span></td>
+                  <td><span class="badge red">Freigabe ausstehend</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Team-Event Q2</strong><span>Eventplanung · 20. Juni 2025</span></td>
+                  <td><strong>Alex Müller</strong><span class="badge purple">Owner</span></td>
+                  <td>Anna Weber, Lisa Hoffmann<span>Thomas Becker · Budget</span></td>
+                  <td><strong>Sophie Wagner</strong><span>People &amp; Kommunikation</span></td>
+                  <td><span class="badge green">Geklärt</span></td>
+                </tr>
+                <tr class="at-risk-row">
+                  <td><strong>Team-Event Q2</strong><span>Budget &amp; Location</span></td>
+                  <td><strong>Alex Müller</strong><span class="badge purple">Owner</span></td>
+                  <td>Thomas Becker, Lisa Hoffmann<span class="badge green">Contributors</span></td>
+                  <td><strong>Sophie Wagner</strong><span>Location noch nicht bestätigt</span></td>
+                  <td><span class="badge red">Unklar</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+      <section class="fusion-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <button class="modal-close" id="modalClose" type="button" aria-label="Dialog schließen">×</button>
+        <p class="eyebrow" id="modalEyebrow">Fusion Aktion</p>
+        <h2 id="modalTitle">Neues Element erstellen</h2>
+        <form class="modal-form" id="modalForm">
+          <label>
+            Typ
+            <select id="modalType">
+              <option value="project">Projekt</option>
+              <option value="task">Aufgabe</option>
+              <option value="event">Termin</option>
+              <option value="file">Datei</option>
+            </select>
+          </label>
+          <label>
+            Titel
+            <input id="modalName" placeholder="Titel eingeben" required />
+          </label>
+          <div class="modal-two">
+            <label>
+              Datum
+              <input id="modalDate" type="date" />
+            </label>
+            <label>
+              Uhrzeit
+              <input id="modalTime" type="time" />
+            </label>
+          </div>
+          <label>
+            Projektbezug
+            <select id="modalProject">
+              <option>Nachhaltigkeits-Workshop</option>
+              <option>Produktlaunch Kampagne</option>
+              <option>Kundenfeedback Analyse</option>
+              <option>Team-Event Q2</option>
+            </select>
+          </label>
+          <label>
+            Beschreibung
+            <textarea id="modalDescription" placeholder="Kurze Beschreibung oder Notiz"></textarea>
+          </label>
+          <div class="modal-actions">
+            <button class="outline-btn" id="modalCancel" type="button">Abbrechen</button>
+            <button class="create-btn" type="submit">Speichern</button>
+          </div>
+        </form>
+      </section>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js?v=07"></script>
+  </body>
+</html>

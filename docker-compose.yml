@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  db:
+    image: ankane/pgvector:latest
+    container_name: fusion_db
+    environment:
+      POSTGRES_USER: fusion_user
+      POSTGRES_PASSWORD: fusion_password
+      POSTGRES_DB: fusion_baukasten
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: fusion_redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
