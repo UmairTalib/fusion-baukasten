@@ -4,9 +4,11 @@ from jose import jwt
 from passlib.context import CryptContext
 import os
 
-# To get a string like this run:
-# openssl rand -hex 32
-SECRET_KEY = os.getenv("SECRET_KEY", "b4f2c9e6d0a7f1e4b8a2c5d9f3e6a0c4b7f1e8d2c5a9f3e6b0c4a7d1e8f2c5b9")
+# The secret key must now be provided via environment variables (e.g., in a .env file)
+# to prevent GitGuardian from flagging hardcoded secrets.
+SECRET_KEY = os.getenv("SECRET_KEY", "")
+if not SECRET_KEY:
+    raise ValueError("No SECRET_KEY set for FastAPI application. Please set it in a .env file.")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 7 days for now
 
