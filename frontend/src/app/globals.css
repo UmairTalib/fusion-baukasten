@@ -1,26 +1,24 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    @apply bg-fusion-bg text-fusion-text antialiased min-h-screen selection:bg-fusion-purple/30 selection:text-fusion-purpleDark;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Beautiful glassmorphism panels used in the prototype */
+  .glass-panel {
+    @apply bg-white/90 backdrop-blur-md border border-fusion-line shadow-fusion rounded-lg;
+  }
+  
+  .primary-btn {
+    @apply bg-gradient-to-r from-fusion-purple to-fusion-purpleDark text-white font-semibold py-2 px-4 rounded-lg shadow-[0_4px_14px_rgba(92,59,224,0.39)] hover:shadow-[0_6px_20px_rgba(92,59,224,0.23)] hover:scale-[1.02] transition-all duration-200 active:scale-95;
+  }
+  
+  .outline-btn {
+    @apply bg-transparent border border-fusion-line text-fusion-text font-semibold py-2 px-4 rounded-lg hover:bg-fusion-panelSoft transition-colors duration-200;
+  }
 }
