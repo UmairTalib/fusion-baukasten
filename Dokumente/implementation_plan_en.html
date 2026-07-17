@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Fusion-Baukasten — Implementation Plan</title>
+<style>
+/* ====================================================
+   WEASYPRINT-SAFE STYLESHEET
+   No CSS Grid, no box-shadow, no overflow-x,
+   table-based multi-column, simple flexbox only.
+   ==================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@page {
+  size: A4 portrait;
+  margin: 18mm 20mm 20mm 20mm;
+}
+
+@page :first {
+  margin: 0;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', Arial, sans-serif;
+  font-size: 10pt;
+  line-height: 1.6;
+  color: #1F2937;
+}
+
+/* ---- COVER ---- */
+.cover {
+  page-break-after: always;
+  background: #1e1b4b;
+  color: #fff;
+  width: 210mm;
+  height: 297mm;
+  padding: 50px 60px;
+  display: block;
+  position: relative;
+}
+
+.cover-accent-bar {
+  width: 60px;
+  height: 5px;
+  background: #818CF8;
+  margin-bottom: 48px;
+}
+
+.cover-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.cover-logo-box {
+  width: 60px;
+  height: 60px;
+  background: #4F46E5;
+  border: 2px solid #818CF8;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22pt;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.cover-logo-text { font-size: 22pt; font-weight: 700; letter-spacing: -0.02em; }
+.cover-logo-sub  { font-size: 10pt; color: #A5B4FC; margin-top: 4px; }
+
+.cover h1 {
+  font-size: 30pt;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.cover h1 .hl { color: #A5B4FC; }
+
+.cover-desc {
+  font-size: 11pt;
+  color: #C7D2FE;
+  line-height: 1.65;
+  margin-bottom: 60px;
+  max-width: 500px;
+}
+
+.cover-meta-table {
+  width: 100%;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  padding-top: 28px;
+}
+
+.cover-meta-table td {
+  padding: 0 32px 0 0;
+  vertical-align: top;
+  width: 20%;
+}
+
+.cover-meta-table td:last-child { padding-right: 0; }
+
+.meta-label {
+  display: block;
+  font-size: 7.5pt;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 4px;
+}
+
+.meta-value {
+  display: block;
+  font-size: 10pt;
+  font-weight: 600;
+  color: #fff;
+}
+
+.cover-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  padding: 5px 14px;
+  font-size: 8.5pt;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #C7D2FE;
+  margin-bottom: 60px;
+}
+
+/* ---- TOC ---- */
+.toc-page { page-break-after: always; }
+
+.toc-title {
+  font-size: 18pt;
+  font-weight: 700;
+  color: #4F46E5;
+  border-bottom: 3px solid #EEF2FF;
+  padding-bottom: 10px;
+  margin-bottom: 28px;
+}
+
+.toc-table { width: 100%; border-collapse: collapse; }
+.toc-table tr.group td { padding: 14px 0 4px; font-weight: 700; font-size: 10.5pt; color: #111827; }
+.toc-table tr.group td.toc-pn { font-weight: 700; color: #4F46E5; }
+.toc-table tr.item td { padding: 5px 0 5px 18px; font-size: 9.5pt; color: #374151; border-bottom: 1px dashed #E5E7EB; }
+.toc-table tr.item td.toc-pn { color: #4F46E5; font-weight: 600; text-align: right; padding-right: 0; width: 30px; }
+.toc-dots { color: #D1D5DB; }
+
+/* ---- SECTION HEADER ---- */
+.section { page-break-before: always; }
+.section:first-child { page-break-before: avoid; }
+
+.section-header {
+  background: #4F46E5;
+  color: #fff;
+  border-radius: 8px;
+  padding: 16px 24px;
+  margin-bottom: 28px;
+}
+
+.section-header-inner { display: flex; align-items: center; gap: 18px; }
+
+.section-num {
+  font-size: 28pt;
+  font-weight: 800;
+  color: rgba(255,255,255,0.25);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.section-title { font-size: 15pt; font-weight: 700; }
+.section-sub   { font-size: 9pt; color: rgba(255,255,255,0.65); margin-top: 3px; }
+
+/* ---- HEADINGS ---- */
+h2 {
+  font-size: 12.5pt;
+  font-weight: 700;
+  color: #111827;
+  margin: 24px 0 12px;
+  padding-left: 12px;
+  border-left: 4px solid #4F46E5;
+}
+
+h3 {
+  font-size: 10.5pt;
+  font-weight: 700;
+  color: #4F46E5;
+  margin: 16px 0 8px;
+}
+
+p { margin-bottom: 10px; color: #374151; }
+
+/* ---- CALLOUT BOXES ---- */
+.callout {
+  border-radius: 6px;
+  padding: 14px 18px;
+  margin: 18px 0;
+  display: block;
+}
+
+.callout-title { font-weight: 700; font-size: 10pt; margin-bottom: 5px; }
+.callout-text  { font-size: 9.5pt; line-height: 1.55; margin: 0; }
+
+.callout.info      { background: #E0F2FE; border-left: 4px solid #0284C7; color: #0c4a6e; }
+.callout.success   { background: #D1FAE5; border-left: 4px solid #059669; color: #064e3b; }
+.callout.warning   { background: #FEF3C7; border-left: 4px solid #D97706; color: #78350f; }
+.callout.important { background: #EEF2FF; border-left: 4px solid #4F46E5; color: #312e81; }
+
+/* ---- TABLES ---- */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0 22px;
+  font-size: 9.5pt;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+}
+
+.data-table thead tr { background: #4F46E5; }
+.data-table thead th {
+  padding: 9px 13px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 8.5pt;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #fff;
+}
+
+.data-table tbody tr:nth-child(even) { background: #F9FAFB; }
+
+.data-table tbody td {
+  padding: 8px 13px;
+  border-bottom: 1px solid #F3F4F6;
+  vertical-align: top;
+  color: #374151;
+}
+
+.data-table tbody td:first-child { font-weight: 600; color: #1F2937; }
+
+/* ---- CODE BLOCKS ---- */
+.code-block {
+  background: #0f172a;
+  border-radius: 8px;
+  padding: 18px 22px;
+  margin: 14px 0;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 8pt;
+  line-height: 1.75;
+  color: #e2e8f0;
+  white-space: pre;
+  display: block;
+  word-break: break-all;
+}
+
+.co { color: #64748b; }  /* comment */
+.kw { color: #93c5fd; }  /* keyword */
+.st { color: #86efac; }  /* string */
+.fo { color: #fcd34d; }  /* folder */
+.ar { color: #f472b6; }  /* arrow */
+.ag { color: #34d399; }  /* agent */
+
+/* ---- TWO-COLUMN STACK LAYOUT (table-based for WeasyPrint) ---- */
+.two-col-table { width: 100%; border-collapse: separate; border-spacing: 12px 0; margin: 16px -12px 20px; }
+.two-col-table td { width: 50%; vertical-align: top; }
+
+.stack-card {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 14px;
+  display: block;
+}
+
+.stack-card-title {
+  font-size: 8.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #4F46E5;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.stack-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 4px 0;
+  border-bottom: 1px dashed #E5E7EB;
+  font-size: 9pt;
+}
+.stack-row:last-child { border-bottom: none; }
+.stack-tech { font-weight: 600; color: #1F2937; }
+.stack-why  { color: #6B7280; font-size: 8.5pt; text-align: right; max-width: 55%; }
+
+/* ---- DB SCHEMA ---- */
+.schema-four-col { width: 100%; border-collapse: separate; border-spacing: 10px 10px; margin: 14px -10px 18px; }
+.schema-four-col td { width: 50%; vertical-align: top; }
+
+.schema-card { border: 1px solid #E5E7EB; border-radius: 6px; overflow: hidden; display: block; }
+.schema-card-head { background: #4F46E5; color: #fff; padding: 7px 12px; font-weight: 700; font-size: 9pt; }
+.schema-card-body { padding: 9px 12px; background: #fff; font-size: 8.5pt; color: #374151; }
+.schema-card-body code { background: #EEF2FF; padding: 1px 5px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; color: #4F46E5; display: inline-block; margin: 1px 1px; }
+
+/* ---- PHASE CARDS ---- */
+.phase-card {
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  page-break-inside: avoid;
+}
+
+.phase-head { background: #4F46E5; color: #fff; padding: 12px 18px; }
+.phase-head-inner { display: flex; align-items: center; gap: 14px; }
+.phase-num { width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11pt; flex-shrink: 0; }
+.phase-title { font-weight: 700; font-size: 10.5pt; }
+.phase-weeks { font-size: 8pt; color: rgba(255,255,255,0.7); margin-top: 2px; }
+.phase-body { padding: 14px 18px; }
+
+.checklist { list-style: none; padding: 0; margin: 0; }
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 9.5pt;
+  color: #374151;
+  border-bottom: 1px solid #F3F4F6;
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 14px; height: 14px;
+  border: 2px solid #D1D5DB;
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  display: inline-block;
+}
+
+/* ---- DOCKER SERVICES ---- */
+.docker-three-col { width: 100%; border-collapse: separate; border-spacing: 10px 10px; margin: 16px -10px 20px; }
+.docker-three-col td { width: 33.33%; vertical-align: top; }
+.docker-svc {
+  background: #0f172a;
+  border: 1px solid #312e81;
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+  display: block;
+}
+.docker-svc-name { font-size: 10pt; font-weight: 700; color: #a5b4fc; margin-bottom: 4px; }
+.docker-svc-desc { font-size: 8pt; color: #64748b; }
+.docker-svc-port { font-size: 7.5pt; color: #34d399; font-family: 'JetBrains Mono', monospace; margin-top: 6px; font-weight: 600; }
+
+/* ---- BADGE ---- */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+.badge-blue   { background: #EEF2FF; color: #4F46E5; border: 1px solid #C7D2FE; }
+.badge-green  { background: #D1FAE5; color: #059669; border: 1px solid #A7F3D0; }
+.badge-yellow { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+
+/* ---- FOOTER ---- */
+.page-footer { margin-top: 36px; padding-top: 12px; border-top: 1px solid #E5E7EB; display: flex; justify-content: space-between; font-size: 8pt; color: #9CA3AF; }
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     COVER PAGE
+     ========================================================= -->
+<div class="cover">
+  <div class="cover-badge">University Project &mdash; Implementation Plan</div>
+
+  <div class="cover-logo-row">
+    <div class="cover-logo-box">F</div>
+    <div>
+      <div class="cover-logo-text">FUSION-BAUKASTEN</div>
+      <div class="cover-logo-sub">deliberAIde &middot; AI-Powered Civic Participation Planning</div>
+    </div>
+  </div>
+
+  <h1>Complete<br/><span class="hl">Implementation Plan</span><br/>and Technology Stack</h1>
+
+  <p class="cover-desc">
+    A scalable, commercial-grade web application for AI-guided planning of civic
+    participation formats. Features 4 specialised AI agents, an 8-domain PostgreSQL
+    schema, real-time async agent orchestration via LangGraph and Celery, and a full
+    Docker-based deployment strategy for the university virtual machine.
+  </p>
+
+  <div class="cover-accent-bar"></div>
+
+  <table class="cover-meta-table">
+    <tr>
+      <td><span class="meta-label">Created</span><span class="meta-value">July 2026</span></td>
+      <td><span class="meta-label">Duration</span><span class="meta-value">6 Months</span></td>
+      <td><span class="meta-label">Hosting</span><span class="meta-value">University VM</span></td>
+      <td><span class="meta-label">App Language</span><span class="meta-value">German (UI)</span></td>
+      <td><span class="meta-label">Developer</span><span class="meta-value">Solo</span></td>
+    </tr>
+  </table>
+</div>
+
+<!-- =========================================================
+     TABLE OF CONTENTS
+     ========================================================= -->
+<div class="toc-page">
+  <p class="toc-title">Table of Contents</p>
+  <table class="toc-table">
+    <colgroup><col style="width:auto"/><col style="width:30px"/></colgroup>
+    <tr class="group"><td>1. Project Overview &amp; What It Does</td><td class="toc-pn">3</td></tr>
+    <tr class="item"><td>What is Fusion-Baukasten?</td><td class="toc-pn">3</td></tr>
+    <tr class="item"><td>Document folder analysis</td><td class="toc-pn">3</td></tr>
+    <tr class="item"><td>Full user journey (end to end)</td><td class="toc-pn">4</td></tr>
+
+    <tr class="group"><td>2. Technology Stack (Independent Analysis)</td><td class="toc-pn">5</td></tr>
+    <tr class="item"><td>Frontend choices and rationale</td><td class="toc-pn">5</td></tr>
+    <tr class="item"><td>Backend choices and rationale</td><td class="toc-pn">5</td></tr>
+    <tr class="item"><td>Database and infrastructure</td><td class="toc-pn">6</td></tr>
+    <tr class="item"><td>What the project docs got wrong</td><td class="toc-pn">6</td></tr>
+
+    <tr class="group"><td>3. Repository Structure</td><td class="toc-pn">7</td></tr>
+    <tr class="group"><td>4. Docker Architecture</td><td class="toc-pn">8</td></tr>
+    <tr class="group"><td>5. Database Schema (8 Domains)</td><td class="toc-pn">9</td></tr>
+    <tr class="group"><td>6. AI Agent Architecture</td><td class="toc-pn">10</td></tr>
+    <tr class="item"><td>The 4-agent system and roles</td><td class="toc-pn">10</td></tr>
+    <tr class="item"><td>Trigger logic and async workflow</td><td class="toc-pn">11</td></tr>
+    <tr class="item"><td>Back-propagation (change cascading)</td><td class="toc-pn">11</td></tr>
+
+    <tr class="group"><td>7. 6-Month Development Roadmap</td><td class="toc-pn">12</td></tr>
+    <tr class="item"><td>Phase 1 — Foundation (Weeks 1-3)</td><td class="toc-pn">12</td></tr>
+    <tr class="item"><td>Phase 2 — Core Flow AI Dialogue (Weeks 4-7)</td><td class="toc-pn">13</td></tr>
+    <tr class="item"><td>Phase 3 — AI Sub-Agents (Weeks 8-11)</td><td class="toc-pn">13</td></tr>
+    <tr class="item"><td>Phase 4 — Dashboard and PM Layer (Weeks 12-16)</td><td class="toc-pn">13</td></tr>
+    <tr class="item"><td>Phase 5 — Outputs and Export (Weeks 17-19)</td><td class="toc-pn">14</td></tr>
+    <tr class="item"><td>Phase 6 — Polish and Deployment (Weeks 20-24)</td><td class="toc-pn">14</td></tr>
+
+    <tr class="group"><td>8. Immediate Next Steps</td><td class="toc-pn">15</td></tr>
+  </table>
+</div>
+
+<!-- =========================================================
+     SECTION 1 — PROJECT OVERVIEW
+     ========================================================= -->
+<div class="section">
+<div class="section-header">
+  <div class="section-header-inner">
+    <div class="section-num">01</div>
+    <div>
+      <div class="section-title">Project Overview and What It Does</div>
+      <div class="section-sub">What is Fusion-Baukasten? Analysis of all source documents. Full user journey.</div>
+    </div>
+  </div>
+</div>
+
+<h2>What is Fusion-Baukasten?</h2>
+<p>
+  <strong>Fusion-Baukasten</strong> (also called <em>deliberAIde</em>) is a German-language,
+  AI-powered, browser-based platform for planning civic participation events.
+  It is developed at Universitat Siegen and targets German municipalities, NGOs,
+  civic planners, and university researchers.
+</p>
+
+<div class="callout important">
+  <div class="callout-title">The Market Gap This Fills</div>
+  <p class="callout-text">
+    Tools like DIPAS, CitizenLab, and Consul help people <em>run</em> participation events.
+    No tool on the market helps planners decide <em>which format to use, how to reach their
+    audience, and what the event should look like</em> before it starts.
+    Fusion-Baukasten fills that gap using AI-guided dialogue. That is the core value proposition.
+  </p>
+</div>
+
+<h2>Document Folder Analysis</h2>
+<table class="data-table">
+  <thead><tr><th>Folder</th><th>Contents</th><th>Relevance</th></tr></thead>
+  <tbody>
+    <tr><td>09 Businesslogik</td><td>Master requirements doc. Full business logic spec for all 7 dialogue blocks A-G, UX rules, trigger conditions, output formats.</td><td><span class="badge badge-blue">Critical</span></td></tr>
+    <tr><td>10 Uberblick</td><td>Strategic overview, curated-knowledge-vs-AI analysis (July 2026), competitive landscape, market context.</td><td><span class="badge badge-blue">Critical</span></td></tr>
+    <tr><td>11 Backend / Backend-Services</td><td>Service architecture documents, PM diagram specs, service input/output contracts.</td><td><span class="badge badge-blue">Critical</span></td></tr>
+    <tr><td>11 Backend / Copilot-Modell</td><td>Full Copilot model spec, agentic backend impact, orchestration layer design, Context Enrichment Service with 3-state status-label system.</td><td><span class="badge badge-blue">Critical</span></td></tr>
+    <tr><td>11 Backend / Datenbankstruktur</td><td>8-domain database schema: Master Data, Projects, Dialogue, Context, Audiences, Methods, Outputs, Evaluation.</td><td><span class="badge badge-blue">Critical</span></td></tr>
+    <tr><td>11 Backend / KI-Agenten</td><td>Specifications and flow diagrams for all 4 AI agents: Planning, Audience, Strategy, Context.</td><td><span class="badge badge-blue">Critical</span></td></tr>
+    <tr><td>12 Kuratierte Wissensbasis</td><td>113-format method catalogue (Austauschformate-v2.xlsx), AI knowledge architecture.</td><td><span class="badge badge-yellow">Important</span></td></tr>
+    <tr><td>Frontend Design / Prototypen</td><td>5 prototype iterations. V.05 is the latest: 1,660-line HTML with full dashboard, co-pilot panel, all views.</td><td><span class="badge badge-blue">Critical</span></td></tr>
+  </tbody>
+</table>
+
+<h2>Full User Journey (End to End)</h2>
+<table class="data-table">
+  <thead><tr><th>Step</th><th>What Happens</th><th>AI Agent</th></tr></thead>
+  <tbody>
+    <tr><td>1. Open App</td><td>Login or guest mode — no forced registration</td><td>None</td></tr>
+    <tr><td>2. New Project</td><td>Create a project, choose Express Mode (3-5 questions) or Detailed Mode (7 blocks)</td><td>None</td></tr>
+    <tr><td>3. Blocks A-B</td><td>AI leads dialogue about occasion, background, goals</td><td>Planning Agent</td></tr>
+    <tr><td>4. Block C</td><td>Define target group. If too vague (e.g. "all citizens"), specialist agent triggered</td><td>Audience Agent</td></tr>
+    <tr><td>5. Block D</td><td>Format matching from 113-method catalogue based on context, group size, budget</td><td>Strategy Agent</td></tr>
+    <tr><td>6. Blocks E-G</td><td>Organisation, communication strategy, evaluation criteria</td><td>Planning Agent</td></tr>
+    <tr><td>7. Context Enrichment</td><td>Upload documents: AI extracts facts, tags each as SUGGESTION / ACCEPTED / CONFLICT</td><td>Context Agent</td></tr>
+    <tr><td>8. Block Summaries</td><td>After each block: Decided / Open / Risks visible to user</td><td>Planning Agent</td></tr>
+    <tr><td>9. Toolkit Export</td><td>Auto-generates a ready-to-use planning document in PDF or Word format</td><td>All Agents</td></tr>
+    <tr><td>10. PM Dashboard</td><td>Tasks, teams, calendar, communication centre, KPI reporting</td><td>Co-Pilot</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- =========================================================
+     SECTION 2 — TECHNOLOGY STACK
+     ========================================================= -->
+<div class="section">
+<div class="section-header">
+  <div class="section-header-inner">
+    <div class="section-num">02</div>
+    <div>
+      <div class="section-title">Technology Stack — Independent Analysis</div>
+      <div class="section-sub">My own engineering decisions, not derived from the project documents.</div>
+    </div>
+  </div>
+</div>
+
+<div class="callout info">
+  <div class="callout-title">Why Independent Analysis?</div>
+  <p class="callout-text">
+    The project documents were written by non-technical team members. Some suggestions (e.g. Spark for chat logic, Airtable as a database, Firebase) are not suitable for a production-grade, containerisable application. The technology choices below are based on engineering best practices for this class of application.
+  </p>
+</div>
+
+<h2>Frontend</h2>
+<table class="two-col-table">
+<tr>
+<td>
+  <div class="stack-card">
+    <div class="stack-card-title">Framework and Language</div>
+    <div class="stack-row"><span class="stack-tech">Next.js 14 (App Router)</span><span class="stack-why">SSR, file routing, TypeScript-native</span></div>
+    <div class="stack-row"><span class="stack-tech">TypeScript</span><span class="stack-why">Type safety for complex agent state</span></div>
+    <div class="stack-row"><span class="stack-tech">React 18</span><span class="stack-why">Concurrent rendering, large ecosystem</span></div>
+  </div>
+</td>
+<td>
+  <div class="stack-card">
+    <div class="stack-card-title">Styling and UI Components</div>
+    <div class="stack-row"><span class="stack-tech">Tailwind CSS</span><span class="stack-why">Fast iteration, design tokens</span></div>
+    <div class="stack-row"><span class="stack-tech">shadcn/ui</span><span class="stack-why">Accessible, unstyled base components</span></div>
+    <div class="stack-row"><span class="stack-tech">Framer Motion</span><span class="stack-why">Co-pilot panel micro-animations</span></div>
+  </div>
+</td>
+</tr>
+<tr>
+<td>
+  <div class="stack-card">
+    <div class="stack-card-title">State Management and Data</div>
+    <div class="stack-row"><span class="stack-tech">Zustand</span><span class="stack-why">Lightweight client state</span></div>
+    <div class="stack-row"><span class="stack-tech">TanStack Query v5</span><span class="stack-why">Server state, caching, background refetch</span></div>
+    <div class="stack-row"><span class="stack-tech">React Hook Form + Zod</span><span class="stack-why">Multi-block dialogue forms</span></div>
+  </div>
+</td>
+<td>
+  <div class="stack-card">
+    <div class="stack-card-title">Real-time and Export</div>
+    <div class="stack-row"><span class="stack-tech">Native WebSockets (FastAPI)</span><span class="stack-why">Agent progress, no extra library</span></div>
+    <div class="stack-row"><span class="stack-tech">Recharts</span><span class="stack-why">KPI dashboard charts</span></div>
+    <div class="stack-row"><span class="stack-tech">react-pdf</span><span class="stack-why">Client-side toolkit preview</span></div>
+  </div>
+</td>
+</tr>
+</table>
+
+<h2>Backend</h2>
+<table class="two-col-table">
+<tr>
+<td>
+  <div class="stack-card">
+    <div class="stack-card-title">API Framework</div>
+    <div class="stack-row"><span class="stack-tech">FastAPI</span><span class="stack-why">Async, OpenAPI auto-docs, Python-native</span></div>
+    <div class="stack-row"><span class="stack-tech">Python 3.12</span><span class="stack-why">Best AI/LLM library ecosystem</span></div>
+    <div class="stack-row"><span class="stack-tech">uv</span><span class="stack-why">10x faster than pip, modern resolver</span></div>
+    <div class="stack-row"><span class="stack-tech">Uvicorn + Gunicorn</span><span class="stack-why">Async ASGI production server</span></div>
+  </div>
+</td>
+<td>
+  <div class="stack-card">
+    <div class="stack-card-title">AI and Agent Orchestration</div>
+    <div class="stack-row"><span class="stack-tech">LangGraph</span><span class="stack-why">Stateful multi-agent workflows, industry standard</span></div>
+    <div class="stack-row"><span class="stack-tech">LangChain</span><span class="stack-why">Document loaders, retrieval chains</span></div>
+    <div class="stack-row"><span class="stack-tech">OpenAI GPT-4o-mini</span><span class="stack-why">Most tasks (cost efficient)</span></div>
+    <div class="stack-row"><span class="stack-tech">OpenAI GPT-4o</span><span class="stack-why">Complex reasoning only (cost control)</span></div>
+  </div>
+</td>
+</tr>
+<tr>
+<td>
+  <div class="stack-card">
+    <div class="stack-card-title">Async Task Queue</div>
+    <div class="stack-row"><span class="stack-tech">Celery 5</span><span class="stack-why">Async agent jobs (2-30s LLM latency)</span></div>
+    <div class="stack-row"><span class="stack-tech">Redis 7</span><span class="stack-why">Celery broker and result backend</span></div>
+    <div class="stack-row"><span class="stack-tech">Flower</span><span class="stack-why">Celery task monitoring dashboard</span></div>
+  </div>
+</td>
+<td>
+  <div class="stack-card">
+    <div class="stack-card-title">Auth, Validation, Testing</div>
+    <div class="stack-row"><span class="stack-tech">FastAPI-Users</span><span class="stack-why">JWT auth + guest mode</span></div>
+    <div class="stack-row"><span class="stack-tech">Pydantic v2</span><span class="stack-why">Fast validation, OpenAI structured outputs</span></div>
+    <div class="stack-row"><span class="stack-tech">pytest + httpx</span><span class="stack-why">Async-compatible API testing</span></div>
+    <div class="stack-row"><span class="stack-tech">ruff</span><span class="stack-why">Linting and formatting (replaces flake8)</span></div>
+  </div>
+</td>
+</tr>
+</table>
+
+<h2>Database and Infrastructure</h2>
+<table class="data-table">
+  <thead><tr><th>Category</th><th>Technology</th><th>Version</th><th>Rationale</th></tr></thead>
+  <tbody>
+    <tr><td>Primary DB</td><td>PostgreSQL</td><td>16</td><td>JSONB for agent snapshots, relational integrity, PostGIS-ready for geo data. Specified in docs and correct.</td></tr>
+    <tr><td>ORM</td><td>SQLAlchemy (async)</td><td>2.0</td><td>Native async support with Alembic for migration management.</td></tr>
+    <tr><td>Vector Search</td><td>pgvector</td><td>latest</td><td>Semantic search over 113-method catalogue inside PostgreSQL — no separate vector DB service needed.</td></tr>
+    <tr><td>Cache / Broker</td><td>Redis</td><td>7</td><td>Celery broker, result backend, and API response cache.</td></tr>
+    <tr><td>Server-side PDF</td><td>WeasyPrint</td><td>latest</td><td>Generates the final Werkzeugkasten PDF on the server — CSS-based layout, no headless browser needed.</td></tr>
+    <tr><td>Containerisation</td><td>Docker + Compose</td><td>latest</td><td>All services containerised from Day 1. Single command to start locally or on the VM.</td></tr>
+    <tr><td>Reverse Proxy</td><td>Nginx</td><td>alpine</td><td>Routes /api to FastAPI, / to Next.js. Handles SSL on the VM.</td></tr>
+    <tr><td>CI/CD</td><td>GitHub Actions</td><td>—</td><td>Build, test, push image, deploy to VM via SSH.</td></tr>
+  </tbody>
+</table>
+
+<h2>What the Project Documents Got Wrong</h2>
+<div class="callout warning">
+  <div class="callout-title">Non-Technical Suggestions Corrected</div>
+  <p class="callout-text">
+    The project documents were written by domain experts, not software engineers.
+    The following suggestions from the docs have been overridden with better decisions:<br/><br/>
+    <strong>Spark (mentioned for chat logic)</strong> — Spark is a no-code chatbot prototyping tool, not suitable for production. Replaced by LangGraph + FastAPI.<br/><br/>
+    <strong>Airtable or Firebase (mentioned as database options)</strong> — Both lack the relational integrity, query power, and GDPR control needed here. PostgreSQL is the correct choice.<br/><br/>
+    <strong>pip as package manager</strong> — Replaced with <em>uv</em>, which is 10-100x faster and has better dependency resolution for complex AI/ML stacks.<br/><br/>
+    <strong>Socket.IO (from original plan)</strong> — Unnecessary abstraction. FastAPI has native WebSocket support that covers all real-time requirements here.
+  </p>
+</div>
+</div>
+
+<!-- =========================================================
+     SECTION 3 — REPOSITORY STRUCTURE
+     ========================================================= -->
+<div class="section">
+<div class="section-header">
+  <div class="section-header-inner">
+    <div class="section-num">03</div>
+    <div>
+      <div class="section-title">Repository Structure</div>
+      <div class="section-sub">Full monorepo layout — containerisation-ready from the start.</div>
+    </div>
+  </div>
+</div>
+
+<div class="code-block"><span class="fo">fusion-baukasten/</span>
+|-- <span class="fo">.github/workflows/</span>
+|   |-- <span class="kw">ci.yml</span>              <span class="co"># lint, test, build on every push</span>
+|   `-- <span class="kw">deploy.yml</span>          <span class="co"># SSH deploy to university VM</span>
+|
+|-- <span class="fo">apps/</span>
+|   |-- <span class="fo">web/</span>                    <span class="co"># Next.js 14 frontend (German UI)</span>
+|   |   |-- <span class="fo">app/</span>
+|   |   |   |-- <span class="fo">(auth)/</span>          <span class="co"># login, register, guest mode</span>
+|   |   |   |-- <span class="fo">dashboard/</span>       <span class="co"># main dashboard (V.05 prototype)</span>
+|   |   |   |-- <span class="fo">projects/</span>        <span class="co"># project list and detail views</span>
+|   |   |   |-- <span class="fo">core-flow/</span>       <span class="co"># 7-block AI dialogue experience</span>
+|   |   |   |-- <span class="fo">toolkit/</span>         <span class="co"># generated toolkit viewer</span>
+|   |   |   `-- <span class="fo">reporting/</span>       <span class="co"># KPI and reporting</span>
+|   |   |-- <span class="fo">components/</span>
+|   |   |   |-- <span class="fo">copilot/</span>         <span class="co"># AI Co-Pilot sidebar</span>
+|   |   |   |-- <span class="fo">core-flow/</span>       <span class="co"># dialogue block UI components</span>
+|   |   |   |-- <span class="fo">dashboard/</span>       <span class="co"># stats, KPI, AI timeline</span>
+|   |   |   `-- <span class="fo">ui/</span>              <span class="co"># shadcn/ui base components</span>
+|   |   |-- <span class="fo">lib/</span>
+|   |   |   |-- <span class="fo">api/</span>             <span class="co"># typed API client wrappers</span>
+|   |   |   |-- <span class="fo">store/</span>           <span class="co"># Zustand stores</span>
+|   |   |   `-- <span class="fo">types/</span>           <span class="co"># shared TypeScript types</span>
+|   |   `-- <span class="kw">Dockerfile</span>
+|   |
+|   `-- <span class="fo">api/</span>                    <span class="co"># FastAPI backend (Python)</span>
+|       |-- <span class="fo">app/</span>
+|       |   |-- <span class="fo">agents/</span>          <span class="co"># LangGraph agent implementations</span>
+|       |   |   |-- <span class="kw">planning_agent.py</span>    <span class="co"># central orchestrator</span>
+|       |   |   |-- <span class="kw">audience_agent.py</span>    <span class="co"># target group profiler</span>
+|       |   |   |-- <span class="kw">strategy_agent.py</span>    <span class="co"># 113-format method matcher</span>
+|       |   |   `-- <span class="kw">context_agent.py</span>     <span class="co"># document analysis + labels</span>
+|       |   |-- <span class="fo">api/</span>             <span class="co"># FastAPI routers</span>
+|       |   |-- <span class="fo">models/</span>          <span class="co"># SQLAlchemy ORM (8 DB domains)</span>
+|       |   |-- <span class="fo">schemas/</span>         <span class="co"># Pydantic v2 request/response</span>
+|       |   |-- <span class="fo">services/</span>        <span class="co"># business logic layer</span>
+|       |   |   |-- <span class="kw">dialog_engine.py</span>         <span class="co"># orchestration layer</span>
+|       |   |   |-- <span class="kw">context_enrichment.py</span>    <span class="co"># SUGGESTION/ACCEPTED/CONFLICT</span>
+|       |   |   |-- <span class="kw">back_propagation.py</span>      <span class="co"># cascading change detection</span>
+|       |   |   `-- <span class="kw">export_service.py</span>        <span class="co"># WeasyPrint PDF/DOCX export</span>
+|       |   |-- <span class="fo">workers/</span>         <span class="co"># Celery async tasks</span>
+|       |   `-- <span class="fo">prompts/</span>         <span class="co"># versioned YAML agent prompts</span>
+|       |-- <span class="fo">migrations/</span>          <span class="co"># Alembic migrations</span>
+|       |-- <span class="fo">tests/</span>
+|       `-- <span class="kw">Dockerfile</span>
+|
+|-- <span class="fo">data/knowledge-base/</span>
+|   |-- <span class="fo">methods/</span>             <span class="co"># 113 formats as JSON/YAML</span>
+|   `-- <span class="fo">seeds/</span>               <span class="co"># DB seed scripts</span>
+|
+|-- <span class="fo">infra/</span>
+|   |-- <span class="kw">docker-compose.yml</span>      <span class="co"># local development stack</span>
+|   |-- <span class="kw">docker-compose.prod.yml</span> <span class="co"># production overrides for VM</span>
+|   `-- <span class="fo">nginx/nginx.conf</span>        <span class="co"># reverse proxy configuration</span>
+|
+|-- <span class="kw">.env.example</span>
+|-- <span class="kw">.gitignore</span>
+`-- <span class="kw">README.md</span></div>
+</div>
+
+<!-- =========================================================
+     SECTION 4 — DOCKER ARCHITECTURE
+     ========================================================= -->
+<div class="section">
+<div class="section-header">
+  <div class="section-header-inner">
+    <div class="section-num">04</div>
+    <div>
+      <div class="section-title">Docker Architecture</div>
+      <div class="section-sub">6 services — all containerised, single command to start.</div>
+    </div>
+  </div>
+</div>
+
+<p>Every service runs in Docker from Day 1. Local development, and the university VM all run identical environments. No "works on my machine" issues.</p>
+
+<table class="docker-three-col">
+<tr>
+  <td>
+    <div class="docker-svc">
+      <div class="docker-svc-name">nginx</div>
+      <div class="docker-svc-desc">Reverse Proxy<br/>SSL Termination</div>
+      <div class="docker-svc-port">:80 / :443</div>
+    </div>
+  </td>
+  <td>
+    <div class="docker-svc">
+      <div class="docker-svc-name">web</div>
+      <div class="docker-svc-desc">Next.js 14<br/>Frontend (German UI)</div>
+      <div class="docker-svc-port">:3000</div>
+    </div>
+  </td>
+  <td>
+    <div class="docker-svc">
+      <div class="docker-svc-name">api</div>
+      <div class="docker-svc-desc">FastAPI<br/>Backend</div>
+      <div class="docker-svc-port">:8000</div>
+    </div>
+  </td>
+</tr>
+<tr>
+  <td>
+    <div class="docker-svc">
+      <div class="docker-svc-name">worker</div>
+      <div class="docker-svc-desc">Celery Worker<br/>Async Agent Jobs</div>
+      <div class="docker-svc-port">internal</div>
+    </div>
+  </td>
+  <td>
+    <div class="docker-svc">
+      <div class="docker-svc-name">postgres</div>
+      <div class="docker-svc-desc">PostgreSQL 16<br/>+ pgvector</div>
+      <div class="docker-svc-port">:5432</div>
+    </div>
+  </td>
+  <td>
+    <div class="docker-svc">
+      <div class="docker-svc-name">redis</div>
+      <div class="docker-svc-desc">Cache and<br/>Queue Broker</div>
+      <div class="docker-svc-port">:6379</div>
+    </div>
+  </td>
+</tr>
+</table>
+
+<div class="code-block"><span class="co"># Nginx routing logic</span>
+<span class="kw">location /api/</span>   <span class="ar">-&gt;</span>  <span class="st">http://api:8000/</span>    <span class="co"># All API requests to FastAPI</span>
+<span class="kw">location /ws/</span>    <span class="ar">-&gt;</span>  <span class="st">http://api:8000/ws/</span> <span class="co"># WebSocket (agent progress)</span>
+<span class="kw">location /</span>       <span class="ar">-&gt;</span>  <span class="st">http://web:3000/</span>    <span class="co"># Everything else to Next.js</span>
+
+<span class="co"># Start the full stack locally:</span>
+docker compose -f infra/docker-compose.yml up -d
+
+<span class="co"># Deploy to university VM:</span>
+docker compose -f infra/docker-compose.prod.yml up -d --build</div>
+
+<div class="callout info">
+  <div class="callout-title">University VM Deployment</div>
+  <p class="callout-text">
+    On the university virtual machine, the entire application — including all dependencies —
+    lives inside containers. Only Docker needs to be installed on the VM itself.
+    SSL is handled by Nginx with Let's Encrypt certificates.
+    Updates are: git pull + docker compose up --build.
+  </p>
+</div>
+</div>
+
+<!-- =========================================================
+     SECTION 5 — DATABASE SCHEMA
+     ========================================================= -->
+<div class="section">
+<div class="section-header">
+  <div class="section-header-inner">
+    <div class="section-num">05</div>
+    <div>
+      <div class="section-title">Database Schema — 8 Domains</div>
+      <div class="section-sub">Mapped from the backend specification. PostgreSQL 16 + pgvector.</div>
+    </div>
+  </div>
+</div>
+
+<p>The schema directly mirrors the 8 database domains from the backend specification documents. All migrations managed by Alembic.</p>
+
+<table class="schema-four-col">
+<tr>
+  <td>
+    <div class="schema-card">
+      <div class="schema-card-head">1 — Master Data</div>
+      <div class="schema-card-body"><code>users</code> <code>organizations</code> <code>roles</code> <code>user_sessions</code></div>
+    </div>
+  </td>
+  <td>
+    <div class="schema-card">
+      <div class="schema-card-head">2 — Projects</div>
+      <div class="schema-card-body"><code>projects</code> <code>project_versions</code> <code>project_permissions</code> <code>project_modes</code></div>
+    </div>
+  </td>
+</tr>
+<tr>
+  <td>
+    <div class="schema-card">
+      <div class="schema-card-head">3 — Dialogue</div>
+      <div class="schema-card-body"><code>question_catalogue</code> <code>dialog_answers</code> <code>block_summaries</code> <code>dialog_snapshots</code></div>
+    </div>
+  </td>
+  <td>
+    <div class="schema-card">
+      <div class="schema-card-head">4 — Context</div>
+      <div class="schema-card-body">
+        <code>context_files</code> <code>context_entries</code> <code>conflict_resolutions</code><br/>
+        status_label ENUM: <code>SUGGESTION</code> <code>ACCEPTED</code> <code>CONFLICT</code>
+      </div>
+    </div>
+  </td>
+</tr>
+<tr>
+  <td>
+    <div class="schema-card">
+      <div class="schema-card-head">5 — Audience / Target Groups</div>
+      <div class="schema-card-body"><code>audience_profiles</code> <code>audience_traits</code> <code>barriers</code> <code>needs</code></div>
+    </div>
+  </td>
+  <td>
+    <div class="schema-card">
+      <div class="schema-card-head">6 — Methods and Strategy</div>
+      <div class="schema-card-body">
+        <code>methods</code> (113 formats with pgvector embeddings)<br/>
+        <code>method_filters</code> <code>strategy_runs</code> <code>strategy_recommendations</code>
+      </div>
+    </div>
+  </td>
+</tr>
+<tr>
+  <td>
+    <div class="schema-card">
+      <div class="schema-card-head">7 — Outputs</div>
+      <div class="schema-card-body"><code>toolkits</code> <code>praxis_plans</code> <code>exports</code> <code>export_files</code></div>
+    </div>
+  </td>
+  <td>
+    <div class="schema-card">
+      <div class="schema-card-head">8 — Evaluation and Logs</div>
+      <div class="schema-card-body">
+        <code>agent_calls</code> (status: pending / running / done)<br/>
+        <code>block_status</code> <code>system_logs</code> <code>metrics</code>
+      </div>
+    </div>
+  </td>
+</tr>
+</table>
+
+<div class="callout warning">
+  <div class="callout-title">Critical: The 3-State Status Label System (Domain 4)</div>
+  <p class="callout-text">
+    Every fact extracted by the Context Agent is tagged with a label.
+    The Planning Agent is only permitted to read ACCEPTED entries — never SUGGESTION or CONFLICT.
+    This is how the Human-in-the-Loop principle works in practice: the AI proposes, the human confirms,
+    and only then does data influence recommendations. This must be implemented correctly before agents go live.
+  </p>
+</div>
+</div>
+
+<!-- =========================================================
+     SECTION 6 — AI AGENT ARCHITECTURE
+     ========================================================= -->
+<div class="section">
+<div class="section-header">
+  <div class="section-header-inner">
+    <div class="section-num">06</div>
+    <div>
+      <div class="section-title">AI Agent Architecture</div>
+      <div class="section-sub">4-agent system via LangGraph. Async via Celery. Human-in-the-Loop enforced.</div>
+    </div>
+  </div>
+</div>
+
+<h2>The 4-Agent System</h2>
+<table class="data-table">
+  <thead><tr><th>Agent</th><th>Role</th><th>When Triggered</th><th>Output</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Planning Agent</td>
+      <td>Central orchestrator. Drives the entire dialogue through blocks A-G. Creates block summaries. Decides when to call specialist agents.</td>
+      <td>Always active — the main agent</td>
+      <td>Block summaries, dialogue state, output coordination</td>
+    </tr>
+    <tr>
+      <td>Audience Agent</td>
+      <td>Creates structured audience profiles including barriers (mobility, language, digital access), reachability, and participation needs.</td>
+      <td>Block C: target group is unclear or too broadly defined (e.g. "all citizens")</td>
+      <td>AudienceProfile with traits, barriers, participation needs</td>
+    </tr>
+    <tr>
+      <td>Strategy Agent</td>
+      <td>Matches project context to the 113-format method catalogue via pgvector semantic search. Recommends top 3 formats with justification, communication strategy, and risk notes.</td>
+      <td>Block D: audience profile exists AND format is still undecided</td>
+      <td>StrategyPackage: recommendations, communication plan, risks</td>
+    </tr>
+    <tr>
+      <td>Context Agent</td>
+      <td>Parses uploaded PDFs and DOCX files. Runs optional web research. Tags each extracted fact as SUGGESTION. Auto-detects conflicts with existing ACCEPTED data.</td>
+      <td>File uploaded, or user clicks "Add background", or system detects content gap after a block summary</td>
+      <td>Context entries with SUGGESTION label, conflict flags</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Async Agent Workflow</h2>
+<p>LLM calls take 2-30 seconds. Users cannot wait for a synchronous HTTP response. All agent work runs asynchronously via Celery:</p>
+
+<div class="code-block"><span class="co">User submits a dialogue answer</span>
+         |
+         v
+  <span class="kw">[ Dialog Engine ]</span>  checks trigger conditions after every turn
+         |
+         +-- Trigger detected?
+         |       |
+         |       v
+         |   Write to agent_calls table  -&gt;  status = <span class="st">pending</span>
+         |       |
+         |       v
+         |   <span class="kw">[ Celery Worker ]</span>  picks job from Redis queue
+         |       |
+         |       +----------+----------------+
+         |       v          v                v
+         |   <span class="ag">Audience</span>   <span class="ag">Strategy</span>       <span class="ag">Context</span>
+         |   <span class="ag">Agent</span>      <span class="ag">Agent</span>          <span class="ag">Agent</span>
+         |       |          |                |
+         |       +----------+----------------+
+         |                  |  LLM call + Pydantic validation
+         |                  v
+         |          status -&gt; <span class="st">done</span>  |  output written to DB
+         |
+         v
+Frontend receives update via:
+  WebSocket event  (preferred, real-time)
+  -- or --
+  Polling /api/dialog/agent-status/{project_id}  every 2s</div>
+
+<h2>Back-Propagation (Change Cascading)</h2>
+<p>When a user changes an earlier answer after completing later blocks, the system automatically detects and flags affected downstream decisions:</p>
+
+<div class="code-block"><span class="co"># Dependency chain (from Planning Agent specification)</span>
+<span class="kw">Target Group</span>  <span class="ar">-&gt;</span>  <span class="kw">Format</span>  <span class="ar">-&gt;</span>  <span class="kw">Outreach</span>  <span class="ar">-&gt;</span>  <span class="kw">Agenda</span>  <span class="ar">-&gt;</span>  <span class="kw">Location</span>
+
+<span class="co"># On target group change: all downstream agent_calls marked outdated</span>
+<span class="co"># User sees a warning in the UI:</span>
+<span class="st">"This change affects: Format, Outreach Strategy, Agenda. Please review."</span></div>
+</div>
+
+<!-- =========================================================
+     SECTION 7 — ROADMAP
+     ========================================================= -->
+<div class="section">
+<div class="section-header">
+  <div class="section-header-inner">
+    <div class="section-num">07</div>
+    <div>
+      <div class="section-title">6-Month Development Roadmap</div>
+      <div class="section-sub">6 phases. Week-by-week breakdown. July 2026 to January 2027.</div>
+    </div>
+  </div>
+</div>
+
+<div class="callout info">
+  <div class="callout-title">Solo Developer Strategy</div>
+  <p class="callout-text">
+    Every phase delivers a working vertical slice — not just infrastructure.
+    The OpenAI API key is not needed until Phase 3. Until then, all agents use
+    structured mock responses so the full dialogue flow, database, and UI can be
+    built and tested at zero AI cost.
+  </p>
+</div>
+
+<div class="phase-card">
+  <div class="phase-head">
+    <div class="phase-head-inner">
+      <div class="phase-num">1</div>
+      <div>
+        <div class="phase-title">Foundation — Repository, Docker, Database</div>
+        <div class="phase-weeks">Weeks 1-3 &middot; approx. 45 hours</div>
+      </div>
+    </div>
+  </div>
+  <div class="phase-body">
+    <ul class="checklist">
+      <li><span class="check-box"></span>Initialise Git monorepo, create GitHub repository with branch protection</li>
+      <li><span class="check-box"></span>docker-compose.yml: PostgreSQL 16, Redis 7, Nginx, placeholder web and api services</li>
+      <li><span class="check-box"></span>Scaffold Next.js 14 with TypeScript and Tailwind CSS in apps/web</li>
+      <li><span class="check-box"></span>Scaffold FastAPI with uv in apps/api — pyproject.toml not requirements.txt</li>
+      <li><span class="check-box"></span>Alembic setup: first migration creates all 8 database domains</li>
+      <li><span class="check-box"></span>pgvector extension enabled in PostgreSQL</li>
+      <li><span class="check-box"></span>Seed script: import 113 methods from Austauschformate-v2.xlsx into methods table with embeddings</li>
+      <li><span class="check-box"></span>JWT authentication: login endpoint, guest mode, refresh tokens</li>
+      <li><span class="check-box"></span>Login screen as first functional frontend page (matching V.05 prototype design)</li>
+      <li><span class="check-box"></span>.env.example with all required variables documented and commented</li>
+    </ul>
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-head">
+    <div class="phase-head-inner">
+      <div class="phase-num">2</div>
+      <div>
+        <div class="phase-title">Core Flow — The 7-Block AI Dialogue</div>
+        <div class="phase-weeks">Weeks 4-7 &middot; approx. 60 hours</div>
+      </div>
+    </div>
+  </div>
+  <div class="phase-body">
+    <ul class="checklist">
+      <li><span class="check-box"></span>Planning Agent with LangGraph — mock LLM responses, no API key needed yet</li>
+      <li><span class="check-box"></span>7-block dialogue structure A-G with adaptive branching logic</li>
+      <li><span class="check-box"></span>Express Mode (3-5 questions) vs. Detailed Mode (all 7 blocks)</li>
+      <li><span class="check-box"></span>Block summary logic after each block: Decided / Open / Risks</li>
+      <li><span class="check-box"></span>Frontend: Core Flow view — conversational UI, chip selection, one question per screen</li>
+      <li><span class="check-box"></span>All dialogue answers saved to database with autosave snapshots</li>
+      <li><span class="check-box"></span>Progress indicator showing current block and completion percentage</li>
+      <li><span class="check-box"></span>Recap logic: every 3-5 turns, offer a summary for user confirmation</li>
+    </ul>
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-head">
+    <div class="phase-head-inner">
+      <div class="phase-num">3</div>
+      <div>
+        <div class="phase-title">AI Sub-Agents — Full 4-Agent System</div>
+        <div class="phase-weeks">Weeks 8-11 &middot; approx. 70 hours</div>
+      </div>
+    </div>
+  </div>
+  <div class="phase-body">
+    <ul class="checklist">
+      <li><span class="check-box"></span>Audience Agent: profile generation with barrier and channel matrix</li>
+      <li><span class="check-box"></span>Strategy Agent: semantic method matching against 113-format catalogue via pgvector</li>
+      <li><span class="check-box"></span>Context Agent: PDF and DOCX upload parsing with PyMuPDF and python-docx</li>
+      <li><span class="check-box"></span>3-state status label system: SUGGESTION, ACCEPTED, CONFLICT enforced at DB level</li>
+      <li><span class="check-box"></span>Celery workers for all async agent calls with retry logic</li>
+      <li><span class="check-box"></span>WebSocket: real-time agent status in the Co-Pilot panel</li>
+      <li><span class="check-box"></span>Back-propagation engine: cascading change detection and user warnings</li>
+      <li><span class="check-box"></span>YAML prompt files versioned in the repository — no hardcoded prompts</li>
+      <li><span class="check-box"></span>OpenAI API key integrated — GPT-4o-mini for most tasks, GPT-4o for complex reasoning</li>
+    </ul>
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-head">
+    <div class="phase-head-inner">
+      <div class="phase-num">4</div>
+      <div>
+        <div class="phase-title">Dashboard and Project Management Layer</div>
+        <div class="phase-weeks">Weeks 12-16 &middot; approx. 80 hours</div>
+      </div>
+    </div>
+  </div>
+  <div class="phase-body">
+    <ul class="checklist">
+      <li><span class="check-box"></span>Main dashboard matching V.05 prototype: stats cards, AI activity timeline, project table, KPI panel</li>
+      <li><span class="check-box"></span>Projects CRUD with version history and access control</li>
+      <li><span class="check-box"></span>Task management: list view and Kanban board</li>
+      <li><span class="check-box"></span>Calendar and timeline view</li>
+      <li><span class="check-box"></span>File manager: upload, preview, link files to projects and context entries</li>
+      <li><span class="check-box"></span>Team and people management with role-based permissions</li>
+      <li><span class="check-box"></span>Communication centre: in-app chat with Co-Pilot action buttons</li>
+      <li><span class="check-box"></span>Toolkit viewer: display the generated participation plan inline</li>
+    </ul>
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-head">
+    <div class="phase-head-inner">
+      <div class="phase-num">5</div>
+      <div>
+        <div class="phase-title">Outputs and Export</div>
+        <div class="phase-weeks">Weeks 17-19 &middot; approx. 35 hours</div>
+      </div>
+    </div>
+  </div>
+  <div class="phase-body">
+    <ul class="checklist">
+      <li><span class="check-box"></span>Server-side PDF generation of the Werkzeugkasten using WeasyPrint</li>
+      <li><span class="check-box"></span>Word DOCX export for formal documentation using python-docx</li>
+      <li><span class="check-box"></span>Excel export for stakeholder lists and method overviews using openpyxl</li>
+      <li><span class="check-box"></span>Reporting dashboard with KPI metrics and chart visualisations</li>
+      <li><span class="check-box"></span>Email notifications for agent completion and pending confirmations</li>
+    </ul>
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-head">
+    <div class="phase-head-inner">
+      <div class="phase-num">6</div>
+      <div>
+        <div class="phase-title">Polish, Security and University VM Deployment</div>
+        <div class="phase-weeks">Weeks 20-24 &middot; approx. 50 hours</div>
+      </div>
+    </div>
+  </div>
+  <div class="phase-body">
+    <ul class="checklist">
+      <li><span class="check-box"></span>WCAG 2.1 AA accessibility audit across all views</li>
+      <li><span class="check-box"></span>GDPR compliance review: data minimisation, consent flows, right to deletion</li>
+      <li><span class="check-box"></span>Performance: target under 200ms API response time, Lighthouse score above 90</li>
+      <li><span class="check-box"></span>GitHub Actions CI/CD pipeline: build, test, push Docker image, SSH deploy to VM</li>
+      <li><span class="check-box"></span>docker-compose.prod.yml tuned for the university VM resources</li>
+      <li><span class="check-box"></span>SSL certificate via Let's Encrypt with automatic renewal</li>
+      <li><span class="check-box"></span>Playwright end-to-end tests for all critical user flows</li>
+      <li><span class="check-box"></span>Technical documentation: FastAPI Swagger UI, README, deployment guide</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<!-- =========================================================
+     SECTION 8 — NEXT STEPS
+     ========================================================= -->
+<div class="section">
+<div class="section-header">
+  <div class="section-header-inner">
+    <div class="section-num">08</div>
+    <div>
+      <div class="section-title">Immediate Next Steps — Day 1</div>
+      <div class="section-sub">The exact commands to start building right now.</div>
+    </div>
+  </div>
+</div>
+
+<div class="callout success">
+  <div class="callout-title">Ready to Start</div>
+  <p class="callout-text">
+    These commands create the full foundation in one session: Git repo, folder structure,
+    Next.js frontend, FastAPI backend, and the Docker stack running locally.
+    No OpenAI key needed — Phase 1 and 2 use mock agent responses entirely.
+  </p>
+</div>
+
+<div class="code-block"><span class="co"># 1. Create the Git repository</span>
+git init fusion-baukasten
+cd fusion-baukasten
+git remote add origin https://github.com/YOUR_USERNAME/fusion-baukasten.git
+
+<span class="co"># 2. Create folder structure</span>
+mkdir -p apps/web apps/api infra/nginx data/knowledge-base .github/workflows
+
+<span class="co"># 3. Scaffold Next.js 14 frontend</span>
+npx create-next-app@latest apps/web \
+  --typescript --tailwind --eslint --app --src-dir=false
+
+<span class="co"># 4. Set up FastAPI backend with uv (not pip)</span>
+pip install uv
+uv init apps/api
+cd apps/api
+uv add fastapi uvicorn sqlalchemy alembic pydantic celery redis
+
+<span class="co"># 5. Start the Docker stack</span>
+docker compose -f infra/docker-compose.yml up -d
+
+<span class="co"># 6. Run the first database migration</span>
+cd apps/api && alembic upgrade head</div>
+
+<h2>LLM Strategy — No API Key Yet</h2>
+
+<table class="data-table">
+  <thead><tr><th>Phase</th><th>LLM Needed?</th><th>Approach</th></tr></thead>
+  <tbody>
+    <tr><td>Phase 1-2 (Weeks 1-7)</td><td>No</td><td>All agents return structured mock responses — full UI and database can be built and tested</td></tr>
+    <tr><td>Phase 3 (Weeks 8-11)</td><td>Yes</td><td>Plug in OpenAI key. Use GPT-4o-mini for most tasks, GPT-4o for complex strategy reasoning</td></tr>
+    <tr><td>Phase 4-6 (Weeks 12-24)</td><td>Yes</td><td>Full agent system with real LLM calls. Monitor token costs with LangSmith or OpenAI dashboard</td></tr>
+  </tbody>
+</table>
+
+<div class="page-footer">
+  <span>Fusion-Baukasten &middot; deliberAIde</span>
+  <span>Implementation Plan v1.0 (English) &middot; July 2026</span>
+  <span>Universitat Siegen</span>
+</div>
+</div>
+
+</body>
+</html>
