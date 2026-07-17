@@ -1,13 +1,7 @@
-import { Sidebar } from "@/components/layout/Sidebar";
-import { Copilot } from "@/components/layout/Copilot";
-import { Workspace } from "@/components/layout/Workspace";
-
-export default function Dashboard() {
+export default function Home() {
   return (
-    <div className="flex bg-fusion-bg min-h-screen">
-      <Sidebar />
-      <Copilot />
-      <Workspace />
-    </div>
-  );
+    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+      <h1>Fusion Baukasten</h1>
+    </main>
+  )
 }
