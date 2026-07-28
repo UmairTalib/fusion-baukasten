@@ -62,11 +62,23 @@ npm run dev
 
 ---
 
-## 🧠 Core Features
-1. **Intelligent Dialogue System (Core Flow):** Guides users through 7 planning blocks (A-G) using conversational AI.
-2. **Dynamic Project Dashboard:** Automatically adapts based on the user's role (Owner, Editor, Viewer).
-3. **Context Enrichment:** Automatically analyzes uploaded PDFs and Word documents to provide intelligent context.
-4. **Werkzeugkasten (Toolkit):** Generates actionable timelines, checklists, and exported reports (via WeasyPrint).
+## 🧠 Core Features & Module Status
+
+1. **Authentication & Identity System (✅ Complete & Verified):**
+   - **Role-Based Access Control:** Project Manager, Team Member, Client roles.
+   - **Enterprise Security:** Min 8 chars, uppercase, lowercase, digit, and any special character (`[^a-zA-Z0-9]`). Case-insensitive email processing.
+   - **Verification & Recovery:** Tokenized email verification via Resend API and self-service password reset.
+   - **Guest Mode:** Frictionless trial access with local & cookie UUID session persistence.
+   - **Server-Side Route Guarding:** Next.js Edge `middleware.ts` intercepting unauthorized navigation with zero UI flicker.
+
+2. **Intelligent Dialogue System (Core Flow):** Guides users through 7 planning blocks (A-G) using conversational AI.
+3. **Dynamic Project Dashboard:** Automatically adapts based on the user's role (Project Manager, Team Member, Client/Guest).
+4. **Context Enrichment:** Automatically analyzes uploaded PDFs and Word documents to provide intelligent context.
+5. **Werkzeugkasten (Toolkit):** Generates actionable timelines, checklists, and exported reports (via WeasyPrint).
+
+## 📐 Architecture Principles
+- **Modular Architecture:** All code (frontend components, backend APIs, services) is strictly modular and feature-isolated.
+- **Open-Source Priority:** Open-source technologies are prioritized for all new dependencies.
 
 ## 🔒 License
 Proprietary & Confidential. All rights reserved.
