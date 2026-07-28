@@ -1,1 +1,9 @@
-@import "tailwindcss";
+/* Fusion-Baukasten — Global Styles
+   Design will be built from scratch based on Business_Logic documentation.docx
+   No Figma/prototype styles are used here.
+*/
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}

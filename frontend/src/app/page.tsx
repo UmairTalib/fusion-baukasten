@@ -1,7 +1,11 @@
+// Fusion-Baukasten
+// Frontend will be built feature-by-feature based on Business_Logic documentation.docx
+// Source of truth: Business_Logic documentation.docx
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <h1>Fusion Baukasten</h1>
+    <main>
+      <h1>Fusion-Baukasten</h1>
     </main>
   )
 }
