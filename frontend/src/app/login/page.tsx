@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { signIn, useSession } from "next-auth/react";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,11 +16,68 @@ export default function LoginPage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // SSO Modal State
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [selectedRole, setSelectedRole] = useState("client"); // default selected in dropdown
+  const [ssoToken, setSsoToken] = useState(""); // to store backend JWT temporarily before assign
+
   useEffect(() => {
     if (searchParams.get("registered") === "true") {
       setSuccessMsg("Konto erfolgreich erstellt! Sie können sich jetzt anmelden.");
     }
   }, [searchParams]);
+
+  // Handle SSO session changes
+  useEffect(() => {
+    const handleSSO = async () => {
+      if (status === "authenticated" && session?.user?.email && !loading && !showRoleModal) {
+        setLoading(true);
+        try {
+          const splitName = (session.user.name || "Gast").split(" ");
+          const firstName = splitName[0];
+          const lastName = splitName.slice(1).join(" ") || "";
+          
+          const response = await fetch("http://127.0.0.1:8000/api/v1/auth/sso", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ 
+              email: session.user.email,
+              first_name: firstName,
+              last_name: lastName,
+              provider: (session as any).provider || "unknown"
+            }),
+          });
+
+          if (!response.ok) throw new Error("SSO Anmeldung fehlgeschlagen.");
+          const data = await response.json();
+          
+          localStorage.setItem("token", data.access_token);
+          
+          if (!data.role) {
+            // New user without role
+            setSsoToken(data.access_token);
+            setShowRoleModal(true);
+          } else {
+            // Existing user with role
+            routeByRole(data.role);
+          }
+        } catch (err: any) {
+          setError(err.message || "Ein unerwarteter Fehler ist aufgetreten.");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    handleSSO();
+  }, [status, session]);
+
+  const routeByRole = (role: string) => {
+    if (role === "project_manager") router.push("/dashboard/project-manager");
+    else if (role === "team_member") router.push("/dashboard/team-member");
+    else router.push("/dashboard/client");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,18 +100,8 @@ export default function LoginPage() {
       }
 
       const data = await response.json();
-      
-      // Store token (in a real app, use HttpOnly cookies or secure local storage)
       localStorage.setItem("token", data.access_token);
-      
-      // Route based on role
-      if (data.role === "project_manager") {
-        router.push("/dashboard/manager");
-      } else if (data.role === "team_member") {
-        router.push("/dashboard/team");
-      } else {
-        router.push("/dashboard/client");
-      }
+      routeByRole(data.role);
 
     } catch (err: any) {
       setError(err.message || "Ein unerwarteter Fehler ist aufgetreten.");
@@ -61,15 +110,190 @@ export default function LoginPage() {
     }
   };
 
+  const handleRoleAssign = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/v1/auth/assign-role", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${ssoToken}` // though endpoint looks up by email, good practice
+        },
+        body: JSON.stringify({ 
+          email: session?.user?.email, 
+          system_role: selectedRole 
+        }),
+      });
+
+      if (!response.ok) throw new Error("Rolle konnte nicht zugewiesen werden.");
+      const data = await response.json();
+      
+      localStorage.setItem("token", data.access_token);
+      setShowRoleModal(false);
+      routeByRole(data.role);
+
+    } catch(err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="bg-surface-bright text-text-primary h-screen w-full font-body-sm overflow-hidden flex">
+    <>
+      {/* Role Selection Modal */}
+      {showRoleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-surface p-8 rounded-xl shadow-[0_14px_36px_rgba(45,55,95,0.08)] border border-outline-variant w-full max-w-md mx-4">
+            <h2 className="text-page-title mb-2 text-on-surface">Ein letzter Schritt!</h2>
+            <p className="text-body-lg text-on-surface-variant mb-6">Bitte wählen Sie Ihre Rolle aus, um fortzufahren.</p>
+            
+            <label className="text-label-caps text-label-text block mb-2 uppercase tracking-wider">Ihre Funktion/Rolle</label>
+            <select 
+              className="w-full px-[12px] py-3 bg-surface border border-line rounded-lg font-body-lg text-on-surface mb-6 outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+            >
+              <option value="client">Kunde / Bürger</option>
+              <option value="team_member">Team-Mitglied</option>
+              <option value="project_manager">Projektmanager</option>
+            </select>
+
+            <button 
+              onClick={handleRoleAssign}
+              disabled={loading}
+              style={{
+                background: "linear-gradient(90deg, #4414c9 0%, #5243d7 100%)",
+                transition: "transform 0.2s ease, opacity 0.2s ease",
+              }}
+              onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.98)")}
+              onMouseUp={(e) => (e.currentTarget.style.transform = "translateY(-1px)")}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0px)")}
+              className="w-full h-12 flex items-center justify-center gap-2 bg-primary text-white rounded-lg text-label-caps transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {loading ? "WIRD GESPEICHERT..." : "SPEICHERN & FORTFAHREN"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Success Message from Registration */}
+      {successMsg && (
+        <div className="mb-6 p-4 bg-green/10 text-green rounded-lg text-sm border border-green/20">
+          {successMsg}
+        </div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-6 p-4 bg-error-container text-on-error-container rounded-lg text-sm border border-red/20">
+          {error}
+        </div>
+      )}
+
+      {/* SSO Buttons */}
+      <div className="flex flex-col gap-3 mb-8">
+        <button 
+          onClick={() => signIn("azure-ad")}
+          type="button"
+          className="w-full flex items-center justify-center gap-3 px-4 py-[10px] bg-surface border border-line rounded-lg text-text-primary text-label-caps hover:bg-surface-container-low transition-colors shadow-sm"
+        >
+          <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zm12.6 0H12.6V0H24v11.4z" fill="#00a4ef" />
+          </svg>
+          Mit Microsoft anmelden
+        </button>
+        <button 
+          onClick={() => signIn("google")}
+          type="button"
+          className="w-full flex items-center justify-center gap-3 px-4 py-[10px] bg-surface border border-line rounded-lg text-text-primary text-label-caps hover:bg-surface-container-low transition-colors shadow-sm"
+        >
+          <svg className="w-5 h-5" viewBox="0 0 24 24">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+            <path d="M1 1h22v22H1z" fill="none" />
+          </svg>
+          Mit Google anmelden
+        </button>
+      </div>
+
+      {/* Divider */}
+      <div className="flex items-center gap-4 mb-8">
+        <div className="flex-1 h-px bg-line"></div>
+        <span className="text-body-sm text-on-surface-variant">
+          oder mit E-Mail anmelden
+        </span>
+        <div className="flex-1 h-px bg-line"></div>
+      </div>
+
+      {/* Email Form */}
+      <form className="flex flex-col gap-4 mb-8" onSubmit={handleSubmit}>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-label-caps text-text-primary uppercase tracking-wider" htmlFor="email">
+            E-Mail-Adresse
+          </label>
+          <input
+            className="w-full px-[12px] py-3 rounded-lg border border-line bg-surface text-on-surface placeholder:text-outline font-body-lg transition-all outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            id="email"
+            placeholder="max@kommune-musterstadt.de"
+            required
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex justify-between items-center">
+            <label className="text-label-caps text-text-primary uppercase tracking-wider" htmlFor="password">
+              Passwort
+            </label>
+            <Link
+              className="text-body-sm text-primary hover:text-primary-container transition-colors"
+              href="/forgot-password"
+            >
+              Passwort vergessen?
+            </Link>
+          </div>
+          <input
+            className="w-full px-[12px] py-3 rounded-lg border border-line bg-surface text-on-surface placeholder:text-outline font-body-lg transition-all outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            id="password"
+            placeholder="••••••••"
+            required
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <button
+          className="w-full py-3 bg-primary text-white rounded-lg text-label-caps hover:bg-primary-container transition-colors shadow-sm mt-2 disabled:opacity-70 disabled:cursor-not-allowed uppercase tracking-wider"
+          type="submit"
+          disabled={loading}
+          style={{
+            background: "linear-gradient(90deg, #4414c9 0%, #5243d7 100%)",
+          }}
+        >
+          {loading ? "Wird angemeldet..." : "Anmelden"}
+        </button>
+      </form>
+    </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <div className="bg-surface-bright text-text-primary h-screen w-full font-body-sm overflow-hidden flex relative">
       {/* Left Column: Form */}
       <div className="w-full lg:w-1/2 h-full bg-surface flex flex-col justify-center px-6 sm:px-12 lg:px-24 overflow-y-auto">
-        <div className="max-w-[440px] w-full mx-auto py-12">
+        <div className="max-w-[440px] w-full mx-auto py-12 relative z-10">
           {/* Branding */}
           <div className="mb-10 text-center lg:text-left">
             <div className="inline-flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-primary text-white flex items-center justify-center rounded-lg font-bold text-xl leading-none">
+              <div 
+                className="w-10 h-10 text-white flex items-center justify-center rounded-lg font-bold text-xl leading-none"
+                style={{ background: "linear-gradient(135deg, #5c3be0 0%, #3f2bc4 100%)" }}
+              >
                 F
               </div>
               <h1 className="text-hero-heading text-text-primary tracking-tight">
@@ -81,116 +305,14 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Success Message from Registration */}
-          {successMsg && (
-            <div className="mb-6 p-4 bg-green/10 text-green rounded-lg text-sm border border-green/20">
-              {successMsg}
-            </div>
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 p-4 bg-error-container text-on-error-container rounded-lg text-sm border border-red/20">
-              {error}
-            </div>
-          )}
-
-          {/* SSO Buttons */}
-          <div className="flex flex-col gap-3 mb-8">
-            <button className="w-full flex items-center justify-center gap-3 px-4 py-[10px] bg-surface border border-line rounded-lg text-text-primary text-label-caps hover:bg-surface-container-low transition-colors shadow-sm">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zm12.6 0H12.6V0H24v11.4z" fill="#00a4ef" />
-              </svg>
-              Mit Microsoft anmelden
-            </button>
-            <button className="w-full flex items-center justify-center gap-3 px-4 py-[10px] bg-surface border border-line rounded-lg text-text-primary text-label-caps hover:bg-surface-container-low transition-colors shadow-sm">
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                <path d="M1 1h22v22H1z" fill="none" />
-              </svg>
-              Mit Google anmelden
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center gap-4 mb-8">
-            <div className="flex-1 h-px bg-line"></div>
-            <span className="text-body-sm text-on-surface-variant">
-              oder mit E-Mail anmelden
-            </span>
-            <div className="flex-1 h-px bg-line"></div>
-          </div>
-
-          {/* Email Form */}
-          <form className="flex flex-col gap-4 mb-8" onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-label-caps text-text-primary" htmlFor="email">
-                E-Mail-Adresse
-              </label>
-              <input
-                className="input-field"
-                id="email"
-                placeholder="max@kommune-musterstadt.de"
-                required
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={{
-                  border: "1px solid var(--color-outline-variant)",
-                  padding: "12px 16px",
-                  borderRadius: "8px",
-                  background: "var(--color-surface)",
-                  color: "var(--color-text-primary)",
-                  width: "100%",
-                }}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <div className="flex justify-between items-center">
-                <label className="text-label-caps text-text-primary" htmlFor="password">
-                  Passwort
-                </label>
-                <Link
-                  className="text-body-sm text-primary hover:text-primary-container transition-colors"
-                  href="/forgot-password"
-                >
-                  Passwort vergessen?
-                </Link>
-              </div>
-              <input
-                className="input-field"
-                id="password"
-                placeholder="••••••••"
-                required
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  border: "1px solid var(--color-outline-variant)",
-                  padding: "12px 16px",
-                  borderRadius: "8px",
-                  background: "var(--color-surface)",
-                  color: "var(--color-text-primary)",
-                  width: "100%",
-                }}
-              />
-            </div>
-            <button
-              className="w-full py-3 bg-primary text-white rounded-lg text-label-caps hover:bg-primary-container transition-colors shadow-sm mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
-              type="submit"
-              disabled={loading}
-            >
-              {loading ? "Wird angemeldet..." : "Anmelden"}
-            </button>
-          </form>
+          <Suspense fallback={<div className="flex justify-center p-8"><span className="animate-spin material-symbols-outlined text-[32px] text-primary">progress_activity</span></div>}>
+            <LoginForm />
+          </Suspense>
 
           {/* Guest & Privacy */}
           <div className="flex flex-col gap-3 pt-4 border-t border-line">
             <button
-              className="w-full py-3 bg-transparent border border-outline text-on-surface-variant rounded-lg text-label-caps hover:bg-surface-container-low transition-colors"
+              className="w-full py-3 bg-transparent border border-outline text-on-surface-variant rounded-lg text-label-caps hover:bg-surface-container-low transition-colors uppercase tracking-wider"
               type="button"
             >
               Als Gast fortfahren
@@ -275,9 +397,8 @@ export default function LoginPage() {
             </div>
             {/* Mock Map/Chart Area */}
             <div className="flex-1 bg-surface-container border border-line/50 rounded-xl relative overflow-hidden group">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                alt="A highly detailed, modern interface mock-up"
+                alt="Interface mockup"
                 className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuAc5lmPfrRS8iRB_B0sZZnZ_Ww_k8Bu5-ExnDXNH9n09jt8AdW7dWk6725ZmTTtyBZDMHEoCIQhEWXNRQdt31b88f40By8bnq186a18O2OAf0xKTkHrEzZayko6m6GMfhA9K9zfKIZR9-w6tB60ne9tqSaYnooqLE_w5LmGVJiPy06Og4uE-44SDKhn9po2zFdSUsz9nUmevjEULhzs32aUT0Z8huPpH7Wz2giSwOjdb53LaeF_9ZVxBHWFdQ9bmQVCBiEY4B8oyMQ7"
               />

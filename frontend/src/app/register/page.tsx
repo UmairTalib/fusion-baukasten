@@ -74,7 +74,14 @@ export default function RegisterPage() {
         throw new Error(errorData.detail || "Registrierung fehlgeschlagen.");
       }
 
-      router.push("/login?registered=true");
+      const data = await response.json();
+      localStorage.setItem("token", data.access_token);
+      
+      const role = data.role;
+      if (role === "project_manager") router.push("/dashboard/project-manager");
+      else if (role === "team_member") router.push("/dashboard/team-member");
+      else router.push("/dashboard/client");
+      
     } catch (err: any) {
       setError(err.message || "Ein unerwarteter Fehler ist aufgetreten.");
     } finally {
