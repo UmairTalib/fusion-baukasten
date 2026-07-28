@@ -1,0 +1,5 @@
+# Antigravity General Rules
+- After every completed implementation, new feature, or significant file change, ALWAYS automatically run `git add .` followed by `git commit -m "[Description of changes]"` and `git push` to keep the GitHub repository updated.
+- Never write or implement frontend code before getting explicit approval from the user.
+- Communicate with the user in English.
+- Application UI Text & Content should always be written in German.
