@@ -1,8 +1,10 @@
-# Node.js
+# Node.js & Secrets
 node_modules/
 .npm
-.env
-.env.local
+.env*
+!.env.example
+*.pem
+*.key
 
 # Python
 __pycache__/
