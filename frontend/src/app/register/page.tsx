@@ -20,6 +20,10 @@ export default function RegisterPage() {
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -37,6 +41,12 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
 
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+    if (!passwordRegex.test(formData.password)) {
+      setError("Das Passwort muss mindestens 8 Zeichen lang sein und einen Großbuchstaben, einen Kleinbuchstaben, eine Zahl und ein Sonderzeichen enthalten.");
+      return;
+    }
+    
     if (formData.password !== formData.confirmPassword) {
       setError("Die Passwörter stimmen nicht überein.");
       return;
@@ -82,6 +92,9 @@ export default function RegisterPage() {
       }
       
       localStorage.setItem("token", data.access_token);
+      localStorage.setItem("role", data.role);
+      document.cookie = `token=${data.access_token}; path=/; max-age=86400`;
+      document.cookie = `role=${data.role}; path=/; max-age=86400`;
       
       const role = data.role;
       if (role === "project_manager") router.push("/dashboard/project-manager");
@@ -94,6 +107,8 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+
 
   return (
     <div className="min-h-screen flex items-center justify-center antialiased selection:bg-primary-fixed selection:text-on-primary-fixed p-4 sm:p-8">
@@ -135,7 +150,7 @@ export default function RegisterPage() {
               <input
                 className="input-field text-body-sm"
                 id="firstName"
-                placeholder="Max"
+                placeholder="z. B. Max"
                 type="text"
                 value={formData.firstName}
                 onChange={handleChange}
@@ -152,7 +167,7 @@ export default function RegisterPage() {
               <input
                 className="input-field text-body-sm"
                 id="lastName"
-                placeholder="Mustermann"
+                placeholder="z. B. Mustermann"
                 type="text"
                 value={formData.lastName}
                 onChange={handleChange}
@@ -170,7 +185,7 @@ export default function RegisterPage() {
             <input
               className="input-field text-body-sm"
               id="email"
-              placeholder="name@organisation.de"
+              placeholder="z. B. name@organisation.de"
               type="email"
               value={formData.email}
               onChange={handleChange}
@@ -187,7 +202,7 @@ export default function RegisterPage() {
             <input
               className="input-field text-body-sm"
               id="organization"
-              placeholder="z.B. Stadt Siegen"
+              placeholder="z. B. Stadt Siegen"
               type="text"
               value={formData.organization}
               onChange={handleChange}
@@ -231,16 +246,30 @@ export default function RegisterPage() {
               >
                 Passwort
               </label>
-              <input
-                className="input-field text-body-sm"
-                id="password"
-                placeholder="••••••••"
-                type="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                minLength={8}
-              />
+              <div className="relative">
+                <input
+                  className="input-field text-body-sm pr-10"
+                  id="password"
+                  placeholder="••••••••"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  minLength={8}
+                />
+                <button
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-outline-variant hover:text-primary transition-colors flex items-center justify-center"
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  <span className="material-symbols-outlined text-[20px]">
+                    {showPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
+              </div>
+              <p className="text-[11px] text-on-surface-variant leading-tight">
+                Mindestens 8 Zeichen, ein Großbuchstabe, ein Kleinbuchstabe, eine Zahl und ein Sonderzeichen.
+              </p>
             </div>
             <div className="space-y-1.5">
               <label
@@ -249,16 +278,27 @@ export default function RegisterPage() {
               >
                 Passwort wiederholen
               </label>
-              <input
-                className="input-field text-body-sm"
-                id="confirmPassword"
-                placeholder="••••••••"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                minLength={8}
-              />
+              <div className="relative">
+                <input
+                  className="input-field text-body-sm pr-10"
+                  id="confirmPassword"
+                  placeholder="••••••••"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  minLength={8}
+                />
+                <button
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-outline-variant hover:text-primary transition-colors flex items-center justify-center"
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  <span className="material-symbols-outlined text-[20px]">
+                    {showConfirmPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
           <div className="flex items-start mt-6">

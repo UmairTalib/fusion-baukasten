@@ -4,3 +4,5 @@
 - Never write or implement frontend code before getting explicit approval from the user.
 - Communicate with the user in English.
 - Application UI Text & Content should always be written in German.
+- **Technology Selection**: When evaluating new technologies or dependencies to include in the project, prioritize open-source solutions first. Paid/proprietary solutions should only be considered if a suitable open-source alternative does not exist or falls short of requirements.
+- **Modular Architecture**: All code (frontend components, backend APIs, services, utility layers) must be strictly modular and feature-isolated. Coupling between distinct features must be avoided so that any single module, provider, or feature can be refactored, swapped, or extended without breaking other parts of the system.

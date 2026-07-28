@@ -8,6 +8,9 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = import("next/navigation").then(mod => mod.useRouter);
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +38,8 @@ export default function ForgotPasswordPage() {
       setLoading(false);
     }
   };
+
+
 
   return (
     <div className="bg-workspace-bg min-h-screen flex items-center justify-center p-6 selection:bg-primary-fixed selection:text-on-primary-fixed">
@@ -87,7 +92,7 @@ export default function ForgotPasswordPage() {
                   <input
                     className="w-full px-[12px] py-3 rounded-lg border border-line bg-surface text-on-surface placeholder:text-outline font-body-lg transition-all"
                     id="email"
-                    placeholder="name@organisation.de"
+                    placeholder="z. B. name@organisation.de"
                     required
                     type="email"
                     value={email}

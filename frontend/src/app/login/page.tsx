@@ -15,11 +15,14 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // SSO Modal State
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState("client"); // default selected in dropdown
   const [ssoToken, setSsoToken] = useState(""); // to store backend JWT temporarily before assign
+
+
 
   useEffect(() => {
     if (searchParams.get("registered") === "true") {
@@ -54,6 +57,9 @@ function LoginForm() {
           const data = await response.json();
           
           localStorage.setItem("token", data.access_token);
+          localStorage.setItem("role", data.role);
+          document.cookie = `token=${data.access_token}; path=/; max-age=86400`;
+          document.cookie = `role=${data.role}; path=/; max-age=86400`;
           
           if (!data.role) {
             // New user without role
@@ -101,6 +107,9 @@ function LoginForm() {
 
       const data = await response.json();
       localStorage.setItem("token", data.access_token);
+      localStorage.setItem("role", data.role);
+      document.cookie = `token=${data.access_token}; path=/; max-age=86400`;
+      document.cookie = `role=${data.role}; path=/; max-age=86400`;
       routeByRole(data.role);
 
     } catch (err: any) {
@@ -129,6 +138,9 @@ function LoginForm() {
       const data = await response.json();
       
       localStorage.setItem("token", data.access_token);
+      localStorage.setItem("role", data.role);
+      document.cookie = `token=${data.access_token}; path=/; max-age=86400`;
+      document.cookie = `role=${data.role}; path=/; max-age=86400`;
       setShowRoleModal(false);
       routeByRole(data.role);
 
@@ -138,6 +150,8 @@ function LoginForm() {
       setLoading(false);
     }
   };
+
+
 
   return (
     <>
@@ -237,7 +251,7 @@ function LoginForm() {
           <input
             className="w-full px-[12px] py-3 rounded-lg border border-line bg-surface text-on-surface placeholder:text-outline font-body-lg transition-all outline-none focus:border-primary focus:ring-1 focus:ring-primary"
             id="email"
-            placeholder="max@kommune-musterstadt.de"
+            placeholder="z. B. max@kommune-musterstadt.de"
             required
             type="email"
             value={email}
@@ -256,15 +270,26 @@ function LoginForm() {
               Passwort vergessen?
             </Link>
           </div>
-          <input
-            className="w-full px-[12px] py-3 rounded-lg border border-line bg-surface text-on-surface placeholder:text-outline font-body-lg transition-all outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-            id="password"
-            placeholder="••••••••"
-            required
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="relative">
+            <input
+              className="w-full px-[12px] py-3 rounded-lg border border-line bg-surface text-on-surface placeholder:text-outline font-body-lg transition-all outline-none focus:border-primary focus:ring-1 focus:ring-primary pr-10"
+              id="password"
+              placeholder="••••••••"
+              required
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-outline-variant hover:text-primary transition-colors flex items-center justify-center"
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              <span className="material-symbols-outlined text-[20px]">
+                {showPassword ? "visibility_off" : "visibility"}
+              </span>
+            </button>
+          </div>
         </div>
         <button
           className="w-full py-3 bg-primary text-white rounded-lg text-label-caps hover:bg-primary-container transition-colors shadow-sm mt-2 disabled:opacity-70 disabled:cursor-not-allowed uppercase tracking-wider"
@@ -282,6 +307,18 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
+  const router = import("next/navigation").then(mod => mod.useRouter());
+
+  const handleGuestLogin = () => {
+    const guestId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    localStorage.setItem("guest_session_id", guestId);
+    document.cookie = `guest_session_id=${guestId}; path=/; max-age=86400`; // 1 day
+    
+    // Instead of resolving the promise, just use window.location.href if it's simpler, 
+    // or properly use the useRouter hook at the top level
+    window.location.href = "/dashboard/client";
+  };
+
   return (
     <div className="bg-surface-bright text-text-primary h-screen w-full font-body-sm overflow-hidden flex relative">
       {/* Left Column: Form */}
@@ -312,6 +349,7 @@ export default function LoginPage() {
           {/* Guest & Privacy */}
           <div className="flex flex-col gap-3 pt-4 border-t border-line">
             <button
+              onClick={handleGuestLogin}
               className="w-full py-3 bg-transparent border border-outline text-on-surface-variant rounded-lg text-label-caps hover:bg-surface-container-low transition-colors uppercase tracking-wider"
               type="button"
             >

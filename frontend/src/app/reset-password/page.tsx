@@ -27,8 +27,9 @@ function ResetPasswordForm() {
       return;
     }
 
-    if (newPassword.length < 8) {
-      setError("Das Passwort muss mindestens 8 Zeichen lang sein.");
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      setError("Das Passwort muss mindestens 8 Zeichen lang sein und einen Großbuchstaben, einen Kleinbuchstaben, eine Zahl und ein Sonderzeichen enthalten.");
       return;
     }
 
@@ -119,6 +120,9 @@ function ResetPasswordForm() {
                   </span>
                 </button>
               </div>
+              <p className="text-[11px] text-on-surface-variant leading-tight mt-1">
+                Mindestens 8 Zeichen, ein Großbuchstabe, ein Kleinbuchstabe, eine Zahl und ein Sonderzeichen.
+              </p>
             </div>
 
             {/* Input 2 */}
@@ -190,6 +194,9 @@ function ResetPasswordForm() {
 }
 
 export default function ResetPasswordPage() {
+
+
+
   return (
     <div className="bg-workspace-bg min-h-screen flex items-center justify-center p-6 selection:bg-primary-fixed selection:text-on-primary-fixed">
       <main className="w-full max-w-[448px]">

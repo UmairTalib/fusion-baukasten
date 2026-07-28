@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta, datetime
@@ -66,12 +66,25 @@ class AssignRoleRequest(BaseModel):
     system_role: str
 
 
+import re
+
+def validate_password(password: str) -> None:
+    if len(password) < 8:
+        raise HTTPException(status_code=400, detail="Das Passwort muss mindestens 8 Zeichen lang sein.")
+    if not re.search(r"[a-z]", password):
+        raise HTTPException(status_code=400, detail="Das Passwort muss mindestens einen Kleinbuchstaben enthalten.")
+    if not re.search(r"[A-Z]", password):
+        raise HTTPException(status_code=400, detail="Das Passwort muss mindestens einen Großbuchstaben enthalten.")
+    if not re.search(r"\d", password):
+        raise HTTPException(status_code=400, detail="Das Passwort muss mindestens eine Zahl enthalten.")
+    if not re.search(r"[^a-zA-Z0-9]", password):
+        raise HTTPException(status_code=400, detail="Das Passwort muss mindestens ein Sonderzeichen enthalten.")
+
 # ── Auth Endpoints ──────────────────────────────────────────────
 
 @router.post("/login", response_model=Token)
-def login_access_token(
-    login_data: Optional[LoginJSONRequest] = None,
-    form_data: Optional[OAuth2PasswordRequestForm] = Depends(),
+async def login_access_token(
+    request: Request,
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """
@@ -79,8 +92,15 @@ def login_access_token(
     Returns access token, token type, user role, and basic profile info.
     Ref: Business_Logic documentation.docx, Section 3.
     """
-    email = login_data.email if login_data else (form_data.username if form_data else None)
-    password = login_data.password if login_data else (form_data.password if form_data else None)
+    content_type = request.headers.get("content-type", "")
+    if "application/json" in content_type:
+        data = await request.json()
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "")
+    else:
+        form = await request.form()
+        email = form.get("username", "").strip().lower()
+        password = form.get("password", "")
 
     if not email or not password:
         raise HTTPException(status_code=400, detail="E-Mail und Passwort erforderlich")
@@ -124,7 +144,11 @@ def register_user(
     and optional organization link.
     Ref: Business_Logic documentation.docx, Section 2-3.
     """
-    existing_user = db.query(User).filter(User.email == user_in.email).first()
+    validate_password(user_in.password)
+    
+    email = user_in.email.strip().lower()
+
+    existing_user = db.query(User).filter(User.email == email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="E-Mail-Adresse ist bereits registriert")
 
@@ -137,7 +161,7 @@ def register_user(
         role_enum = SystemRole[user_in.system_role]
 
     new_user = User(
-        email=user_in.email,
+        email=email,
         first_name=user_in.first_name,
         last_name=user_in.last_name,
         hashed_password=security.get_password_hash(user_in.password),
@@ -186,7 +210,8 @@ def convert_guest_to_account(
     All projects created under the guest session_id are automatically merged to the new user.
     Ref: Business_Logic documentation.docx, Section 2.3.
     """
-    existing_user = db.query(User).filter(User.email == req.email).first()
+    email = req.email.strip().lower()
+    existing_user = db.query(User).filter(User.email == email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="E-Mail-Adresse ist bereits registriert")
 
@@ -198,7 +223,7 @@ def convert_guest_to_account(
         role_enum = SystemRole[req.system_role]
 
     new_user = User(
-        email=req.email,
+        email=email,
         first_name=req.first_name,
         last_name=req.last_name,
         hashed_password=security.get_password_hash(req.password),
@@ -245,9 +270,49 @@ def forgot_password(
     Password reset request endpoint. Generates reset token.
     Ref: Business_Logic documentation.docx.
     """
-    user = db.query(User).filter(User.email == req.email).first()
+    email = req.email.strip().lower()
+    user = db.query(User).filter(User.email == email).first()
+    if user:
+        from app.core.email import send_password_reset_email
+        reset_token_expires = timedelta(hours=1)
+        token = create_access_token(str(user.id), expires_delta=reset_token_expires)
+        send_password_reset_email(email_to=user.email, token=token)
+        
     # Always return success to prevent email enumeration
     return {"message": "Wenn ein Konto mit dieser E-Mail-Adresse existiert, wurde eine E-Mail gesendet."}
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+@router.post("/reset-password")
+def reset_password(
+    req: ResetPasswordRequest,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Validates token and sets a new password.
+    """
+    validate_password(req.new_password)
+
+    try:
+        from jose import jwt, JWTError
+        payload = jwt.decode(req.token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=400, detail="Ungültiger Token")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Ungültiger Token")
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Benutzer nicht gefunden")
+
+    user.hashed_password = security.get_password_hash(req.new_password)
+    db.commit()
+
+    return {"message": "Passwort erfolgreich zurückgesetzt."}
 
 
 @router.post("/sso", response_model=Token)
