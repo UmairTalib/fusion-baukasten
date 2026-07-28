@@ -37,6 +37,7 @@ class User(Base):
     # Guest & Privacy (Business Logic Section 2, Phase 0)
     is_guest = Column(Boolean, default=False)
     session_id = Column(String, unique=True, nullable=True)   # Guest session identifier
+    is_verified = Column(Boolean, default=False)               # Email verification status
     privacy_consent = Column(Boolean, default=False)           # DSGVO consent
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())

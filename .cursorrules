@@ -1,5 +1,6 @@
 # Antigravity General Rules
-- After every completed implementation, new feature, or significant file change, ALWAYS automatically run `git add .` followed by `git commit -m "[Description of changes]"` and `git push` to keep the GitHub repository updated.
+- **Git Commits**: Do not make a commit of more than one functionality combined. Follow a strict "one commit per feature" rule. Use descriptive commit messages. Always automatically push to GitHub after committing.
+- **Senior Software Engineer Mindset**: Always think ahead and implement complete standard architectural flows (e.g., Email Confirmation on Registration, proper error boundaries, loading states, password resets) without waiting for the user to explicitly point them out. 
 - Never write or implement frontend code before getting explicit approval from the user.
 - Communicate with the user in English.
 - Application UI Text & Content should always be written in German.

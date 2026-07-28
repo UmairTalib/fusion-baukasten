@@ -39,6 +39,7 @@ python-jose==3.5.0
 python-multipart==0.0.32
 pyyaml==6.0.3
 redis==8.0.1
+resend==2.6.0
 rich==15.0.0
 rich-toolkit==0.20.3
 rignore==0.7.6

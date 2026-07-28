@@ -75,6 +75,12 @@ export default function RegisterPage() {
       }
 
       const data = await response.json();
+      
+      if (data.verification_required) {
+        router.push("/verify-email-notice");
+        return;
+      }
+      
       localStorage.setItem("token", data.access_token);
       
       const role = data.role;

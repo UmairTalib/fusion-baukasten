@@ -89,6 +89,9 @@ def login_access_token(
     if not user or not user.hashed_password or not security.verify_password(password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Ungültige E-Mail-Adresse oder Passwort")
 
+    if not user.is_verified:
+        raise HTTPException(status_code=403, detail="Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse.")
+
     user.last_login = datetime.utcnow()
     db.commit()
 
@@ -111,7 +114,7 @@ def login_access_token(
     }
 
 
-@router.post("/register", response_model=Token)
+@router.post("/register", response_model=dict)
 def register_user(
     user_in: UserCreate,
     db: Session = Depends(deps.get_db),
@@ -124,6 +127,9 @@ def register_user(
     existing_user = db.query(User).filter(User.email == user_in.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="E-Mail-Adresse ist bereits registriert")
+
+    if len(user_in.password) > 72:
+        raise HTTPException(status_code=400, detail="Passwort darf maximal 72 Zeichen lang sein.")
 
     # Map role string to SystemRole enum
     role_enum = SystemRole.client
@@ -156,21 +162,17 @@ def register_user(
         db.add(membership)
         db.commit()
 
+    # Generate verification token
     access_token_expires = timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
     token_str = create_access_token(str(new_user.id), expires_delta=access_token_expires)
-    role_str = role_enum.value if hasattr(role_enum, 'value') else str(role_enum)
+    
+    # Send verification email
+    from app.core.email import send_verification_email
+    send_verification_email(new_user.email, token_str)
 
     return {
-        "access_token": token_str,
-        "token_type": "bearer",
-        "role": role_str,
-        "user": {
-            "id": str(new_user.id),
-            "email": new_user.email,
-            "first_name": new_user.first_name,
-            "last_name": new_user.last_name,
-            "role": role_str,
-        },
+        "msg": "Bitte bestätigen Sie Ihre E-Mail-Adresse",
+        "verification_required": True
     }
 
 
@@ -187,6 +189,9 @@ def convert_guest_to_account(
     existing_user = db.query(User).filter(User.email == req.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="E-Mail-Adresse ist bereits registriert")
+
+    if len(req.password) > 72:
+        raise HTTPException(status_code=400, detail="Passwort darf maximal 72 Zeichen lang sein.")
 
     role_enum = SystemRole.client
     if req.system_role in SystemRole.__members__:
@@ -336,3 +341,29 @@ def assign_role(
         },
     }
 
+@router.post("/verify-email", response_model=dict)
+def verify_email(
+    token: str,
+    db: Session = Depends(deps.get_db)
+):
+    try:
+        from jose import jwt, JWTError
+        from app.core import security
+        payload = jwt.decode(token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=400, detail="Ungültiger Token")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Ungültiger Token")
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Benutzer nicht gefunden")
+
+    if user.is_verified:
+        return {"msg": "E-Mail ist bereits bestätigt."}
+
+    user.is_verified = True
+    db.commit()
+    
+    return {"msg": "E-Mail erfolgreich bestätigt"}
