@@ -54,6 +54,18 @@ class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 
 
+class SSOJSONRequest(BaseModel):
+    email: EmailStr
+    first_name: str
+    last_name: str
+    provider: str
+
+
+class AssignRoleRequest(BaseModel):
+    email: EmailStr
+    system_role: str
+
+
 # ── Auth Endpoints ──────────────────────────────────────────────
 
 @router.post("/login", response_model=Token)
@@ -231,3 +243,96 @@ def forgot_password(
     user = db.query(User).filter(User.email == req.email).first()
     # Always return success to prevent email enumeration
     return {"message": "Wenn ein Konto mit dieser E-Mail-Adresse existiert, wurde eine E-Mail gesendet."}
+
+
+@router.post("/sso", response_model=Token)
+def sso_login(
+    req: SSOJSONRequest,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Handles Google and Microsoft SSO logins.
+    If user doesn't exist, creates them but leaves system_role as None.
+    If role is None, frontend will intercept and ask for role.
+    """
+    user = db.query(User).filter(User.email == req.email).first()
+    
+    if not user:
+        # Create a new user without a password (SSO) and no initial role
+        user = User(
+            email=req.email,
+            first_name=req.first_name,
+            last_name=req.last_name,
+            hashed_password=None, # No password for SSO users
+            system_role=None, # Intentionally left blank for onboarding
+            privacy_consent=True,
+            is_guest=False,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    access_token_expires = timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
+    token_str = create_access_token(str(user.id), expires_delta=access_token_expires)
+
+    # Return role as empty string if None, so frontend knows to show modal
+    role_str = ""
+    if user.system_role:
+        role_str = user.system_role.value if hasattr(user.system_role, 'value') else str(user.system_role)
+
+    return {
+        "access_token": token_str,
+        "token_type": "bearer",
+        "role": role_str,
+        "user": {
+            "id": str(user.id),
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "role": role_str,
+        },
+    }
+
+
+@router.post("/assign-role", response_model=Token)
+def assign_role(
+    req: AssignRoleRequest,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Allows a new SSO user to assign their role.
+    """
+    user = db.query(User).filter(User.email == req.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Benutzer nicht gefunden")
+
+    if user.system_role:
+        raise HTTPException(status_code=400, detail="Benutzer hat bereits eine Rolle")
+
+    role_enum = SystemRole.client
+    if req.system_role in SystemRole.__members__:
+        role_enum = SystemRole[req.system_role]
+    else:
+        raise HTTPException(status_code=400, detail="Ungültige Rolle")
+
+    user.system_role = role_enum
+    db.commit()
+    db.refresh(user)
+
+    access_token_expires = timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
+    token_str = create_access_token(str(user.id), expires_delta=access_token_expires)
+    role_str = role_enum.value if hasattr(role_enum, 'value') else str(role_enum)
+
+    return {
+        "access_token": token_str,
+        "token_type": "bearer",
+        "role": role_str,
+        "user": {
+            "id": str(user.id),
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "role": role_str,
+        },
+    }
+
