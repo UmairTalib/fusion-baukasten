@@ -1,63 +1,43 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import NextAuth from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import AzureADProvider from "next-auth/providers/azure-ad";
 
-export const authOptions: NextAuthOptions = {
+const handler = NextAuth({
   providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        username: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.username || !credentials?.password) return null;
-
-        try {
-          const res = await fetch("http://localhost:8000/api/v1/auth/login", {
-            method: "POST",
-            body: new URLSearchParams({
-              username: credentials.username,
-              password: credentials.password,
-            }),
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          });
-
-          const data = await res.json();
-
-          if (res.ok && data.access_token) {
-            return {
-              id: "1", // We would decode the JWT here to get the actual user ID
-              email: credentials.username,
-              accessToken: data.access_token,
-            };
-          }
-          return null;
-        } catch (error) {
-          console.error("Auth error", error);
-          return null;
-        }
-      },
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "mock_google_client_id",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "mock_google_client_secret",
+    }),
+    AzureADProvider({
+      clientId: process.env.AZURE_AD_CLIENT_ID || "mock_microsoft_client_id",
+      clientSecret: process.env.AZURE_AD_CLIENT_SECRET || "mock_microsoft_client_secret",
+      tenantId: "common",
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.accessToken = (user as any).accessToken;
+    async signIn({ user, account, profile }) {
+      // Always allow NextAuth sign in; we'll authenticate against FastAPI
+      // on the client side after this completes so we can show the role modal if needed.
+      return true;
+    },
+    async jwt({ token, account, user }) {
+      if (account && user) {
+        token.provider = account.provider;
       }
       return token;
     },
     async session({ session, token }) {
-      (session as any).accessToken = token.accessToken;
+      // Expose provider to session
+      if (session.user) {
+        (session as any).provider = token.provider;
+      }
       return session;
-    },
+    }
   },
   pages: {
     signIn: "/login",
   },
-  session: {
-    strategy: "jwt",
-  },
-};
+  secret: process.env.NEXTAUTH_SECRET || "mock_secret_for_development_only_12345",
+});
 
-const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
