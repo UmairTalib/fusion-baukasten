@@ -4,7 +4,12 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Fusion-Baukasten API"
     VERSION: str = "0.1.0"
     API_V1_STR: str = "/api/v1"
-    
+
+    # Security
+    SECRET_KEY: str = "changeme"
+    JWT_SECRET_KEY: str = "changeme"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
+
     POSTGRES_SERVER: str = "localhost"
     POSTGRES_USER: str = "fusion_user"
     POSTGRES_PASSWORD: str = "fusion_password"
