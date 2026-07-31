@@ -56,9 +56,7 @@ function LoginForm() {
           if (!response.ok) throw new Error("SSO Anmeldung fehlgeschlagen.");
           const data = await response.json();
           
-          localStorage.setItem("token", data.access_token);
           localStorage.setItem("role", data.role);
-          document.cookie = `token=${data.access_token}; path=/; max-age=86400`;
           document.cookie = `role=${data.role}; path=/; max-age=86400`;
           
           if (!data.role) {
@@ -94,6 +92,7 @@ function LoginForm() {
     try {
       const response = await fetch("http://127.0.0.1:8000/api/v1/auth/login", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -106,9 +105,7 @@ function LoginForm() {
       }
 
       const data = await response.json();
-      localStorage.setItem("token", data.access_token);
       localStorage.setItem("role", data.role);
-      document.cookie = `token=${data.access_token}; path=/; max-age=86400`;
       document.cookie = `role=${data.role}; path=/; max-age=86400`;
       routeByRole(data.role);
 
@@ -124,6 +121,7 @@ function LoginForm() {
     try {
       const response = await fetch("http://127.0.0.1:8000/api/v1/auth/assign-role", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${ssoToken}` // though endpoint looks up by email, good practice
@@ -137,9 +135,7 @@ function LoginForm() {
       if (!response.ok) throw new Error("Rolle konnte nicht zugewiesen werden.");
       const data = await response.json();
       
-      localStorage.setItem("token", data.access_token);
       localStorage.setItem("role", data.role);
-      document.cookie = `token=${data.access_token}; path=/; max-age=86400`;
       document.cookie = `role=${data.role}; path=/; max-age=86400`;
       setShowRoleModal(false);
       routeByRole(data.role);
@@ -320,8 +316,8 @@ export default function LoginPage() {
   return (
     <div className="bg-surface-bright text-text-primary h-screen w-full font-body-sm overflow-hidden flex relative">
       {/* Left Column: Form */}
-      <div className="w-full lg:w-1/2 h-full bg-surface flex flex-col justify-start md:justify-center px-6 sm:px-12 lg:px-24 overflow-y-auto">
-        <div className="max-w-[440px] w-full mx-auto py-8 md:py-12 relative z-10">
+      <div className="w-full lg:w-1/2 h-full bg-surface flex flex-col justify-center px-6 sm:px-12 lg:px-24 overflow-y-auto py-12 lg:py-0">
+        <div className="max-w-[440px] w-full mx-auto relative z-10">
           {/* Branding */}
           <div className="mb-10 text-center lg:text-left">
             <div className="inline-flex items-center gap-3 mb-3">

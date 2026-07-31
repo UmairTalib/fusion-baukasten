@@ -1,5 +1,5 @@
 from typing import Generator, Optional
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
@@ -18,8 +18,12 @@ def get_db() -> Generator:
         db.close()
 
 def get_current_user(
-    db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+    request: Request,
+    db: Session = Depends(get_db), 
+    token: str = Depends(oauth2_scheme)
 ) -> Optional[User]:
+    # Fallback to HttpOnly cookie if header is not present
+    token = token or request.cookies.get("access_token")
     if not token:
         return None
     credentials_exception = HTTPException(

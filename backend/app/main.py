@@ -4,7 +4,14 @@ from app.api import auth
 from app.api.auth import router as auth_router
 from app.api.dashboard import router as dashboard_router
 
+from app.core.rate_limit import limiter
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
 app = FastAPI(title="Fusion-Baukasten API", version="0.1.0")
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,

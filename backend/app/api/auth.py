@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta, datetime
@@ -11,6 +11,7 @@ from app.core import security
 from app.models.domain1_stammdaten import User, SystemRole, Organization, Membership
 from app.models.domain2_projekte import Project
 from app.core.security import create_access_token, SECRET_KEY, ALGORITHM
+from app.core.rate_limit import limiter
 import jose.jwt as jwt
 
 
@@ -83,8 +84,10 @@ def validate_password(password: str) -> None:
 # ── Auth Endpoints ──────────────────────────────────────────────
 
 @router.post("/login", response_model=Token)
+@limiter.limit("5/minute")
 async def login_access_token(
     request: Request,
+    response: Response,
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """
@@ -120,6 +123,14 @@ async def login_access_token(
 
     user_role_str = user.system_role.value if hasattr(user.system_role, 'value') else str(user.system_role)
 
+    response.set_cookie(
+        key="access_token",
+        value=token_str,
+        httponly=True,
+        samesite="lax",
+        max_age=security.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+
     return {
         "access_token": token_str,
         "token_type": "bearer",
@@ -133,9 +144,19 @@ async def login_access_token(
         },
     }
 
+@router.post("/logout")
+def logout(response: Response):
+    """
+    Clears the HttpOnly authentication cookie.
+    """
+    response.delete_cookie(key="access_token", httponly=True, samesite="lax")
+    return {"message": "Successfully logged out"}
+
 
 @router.post("/register", response_model=dict)
+@limiter.limit("5/minute")
 def register_user(
+    request: Request,
     user_in: UserCreate,
     db: Session = Depends(deps.get_db),
 ) -> Any:

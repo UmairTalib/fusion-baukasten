@@ -20,13 +20,8 @@ export default function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu?: () => 
     // Fetch the current user session from the backend
     const fetchSession = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-
-        const res = await fetch("http://localhost:8000/api/v1/auth/session", {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+        const res = await fetch("http://127.0.0.1:8000/api/v1/auth/session", {
+          credentials: "include"
         });
 
         if (res.ok) {
@@ -41,13 +36,20 @@ export default function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu?: () => 
     fetchSession();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
+  const handleLogout = async () => {
+    try {
+      await fetch("http://127.0.0.1:8000/api/v1/auth/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+    } catch (e) {
+      console.error(e);
+    }
+    
     localStorage.removeItem("role");
     localStorage.removeItem("guest_session_id");
-    document.cookie = "token=; path=/; max-age=0";
     document.cookie = "role=; path=/; max-age=0";
-    document.cookie = "guest_session_id=; path=/; max-age=0";
+    
     router.push("/login");
   };
 
