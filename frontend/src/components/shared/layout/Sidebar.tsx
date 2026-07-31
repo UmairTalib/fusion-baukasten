@@ -5,9 +5,6 @@ import { usePathname } from "next/navigation";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard/project-manager", icon: "dashboard" },
-  { label: "Projekte", href: "/dashboard/projects", icon: "folder_copy" },
-  { label: "Aufgaben", href: "/dashboard/tasks", icon: "assignment" },
-  { label: "Team", href: "/dashboard/team", icon: "group" },
   { label: "Berichte", href: "/dashboard/reports", icon: "bar_chart" },
 ];
 
@@ -77,17 +74,6 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
         </button>
       </div>
 
-      {/* Footer Navigation */}
-      <div className="px-4 pt-4 border-t border-line space-y-1">
-        <a className="flex items-center gap-4 px-4 py-2 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded" href="#">
-          <span className="material-symbols-outlined text-[18px]">settings</span>
-          <span className="text-[13px]">Einstellungen</span>
-        </a>
-        <a className="flex items-center gap-4 px-4 py-2 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded" href="#">
-          <span className="material-symbols-outlined text-[18px]">help</span>
-          <span className="text-[13px]">Support</span>
-        </a>
-      </div>
     </nav>
   );
 }

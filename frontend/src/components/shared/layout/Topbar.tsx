@@ -91,11 +91,6 @@ export default function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu?: () => 
           <span className="absolute top-0 right-0 w-2 h-2 bg-[#f05a5a] rounded-full"></span>
         </button>
 
-        {/* Apps Icon */}
-        <button className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95 duration-200 hidden md:block">
-          <span className="material-symbols-outlined">apps</span>
-        </button>
-
         {/* Profile Avatar & Dropdown Trigger */}
         <div 
           className="flex items-center gap-3 cursor-pointer pl-4 border-l border-line relative"
