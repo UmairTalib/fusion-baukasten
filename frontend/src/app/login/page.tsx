@@ -320,8 +320,8 @@ export default function LoginPage() {
   return (
     <div className="bg-surface-bright text-text-primary h-screen w-full font-body-sm overflow-hidden flex relative">
       {/* Left Column: Form */}
-      <div className="w-full lg:w-1/2 h-full bg-surface flex flex-col justify-center px-6 sm:px-12 lg:px-24 overflow-y-auto">
-        <div className="max-w-[440px] w-full mx-auto py-12 relative z-10">
+      <div className="w-full lg:w-1/2 h-full bg-surface flex flex-col justify-start md:justify-center px-6 sm:px-12 lg:px-24 overflow-y-auto">
+        <div className="max-w-[440px] w-full mx-auto py-8 md:py-12 relative z-10">
           {/* Branding */}
           <div className="mb-10 text-center lg:text-left">
             <div className="inline-flex items-center gap-3 mb-3">

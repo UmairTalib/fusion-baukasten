@@ -1,10 +1,16 @@
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Enum, Integer
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Enum, Integer, Numeric
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.base_class import Base
 import enum
 import uuid
 from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+
+class TeamRole(str, enum.Enum):
+    owner = "Owner"
+    editor = "Editor"
+    viewer = "Viewer"
 
 
 class PlanningMode(str, enum.Enum):
@@ -47,6 +53,9 @@ class Project(Base):
     inclusivity_notes = Column(String, nullable=True)
     transparency_notes = Column(String, nullable=True)
 
+    budget_used = Column(Numeric(10, 2), default=0.00)
+    budget_total = Column(Numeric(10, 2), default=0.00)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -56,6 +65,7 @@ class Project(Base):
     snapshots = relationship("ProjectSnapshot", back_populates="project")
     tasks = relationship("Task", back_populates="project")
     milestones = relationship("Milestone", back_populates="project")
+    team_members = relationship("TeamMember", back_populates="project", cascade="all, delete-orphan")
 
 
 class ProjectSnapshot(Base):
@@ -110,3 +120,15 @@ class ProjectTemplate(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     creator = relationship("User")
+
+
+class TeamMember(Base):
+    __tablename__ = "team_members"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    team_role = Column(Enum(TeamRole), default=TeamRole.viewer)
+    
+    project = relationship("Project", back_populates="team_members")
+    user = relationship("User")

@@ -432,3 +432,16 @@ def verify_email(
     db.commit()
     
     return {"msg": "E-Mail erfolgreich bestätigt"}
+
+@router.get("/session")
+def read_users_me(current_user: User = Depends(deps.get_current_user)):
+    """
+    Get current user session info for dashboard.
+    """
+    return {
+        "id": str(current_user.id),
+        "email": current_user.email,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "system_role": current_user.system_role.value if hasattr(current_user.system_role, "value") else current_user.system_role
+    }

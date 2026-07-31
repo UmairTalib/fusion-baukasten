@@ -2,116 +2,92 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  FolderKanban, 
-  Users, 
-  CheckSquare, 
-  FileText, 
-  HelpCircle,
-  ChevronLeft,
-  ChevronRight
-} from "lucide-react";
-import { useState } from "react";
 
-interface SidebarProps {
-  role: "project_manager" | "team_member" | "client";
-}
+const navItems = [
+  { label: "Dashboard", href: "/dashboard/project-manager", icon: "dashboard" },
+  { label: "Projekte", href: "/dashboard/projects", icon: "folder_copy" },
+  { label: "Aufgaben", href: "/dashboard/tasks", icon: "assignment" },
+  { label: "Team", href: "/dashboard/team", icon: "group" },
+  { label: "Berichte", href: "/dashboard/reports", icon: "bar_chart" },
+];
 
-interface NavItem {
-  label: string;
-  href: string;
-  icon: React.ElementType;
-}
-
-export default function Sidebar({ role }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  const roleNavItems: Record<SidebarProps["role"], NavItem[]> = {
-    project_manager: [
-      { label: "Übersicht", href: "/dashboard/project-manager", icon: LayoutDashboard },
-      { label: "Projekte", href: "/dashboard/project-manager/projects", icon: FolderKanban },
-      { label: "Team", href: "/dashboard/project-manager/team", icon: Users },
-      { label: "Aufgaben", href: "/dashboard/project-manager/tasks", icon: CheckSquare },
-      { label: "Berichte", href: "/dashboard/project-manager/reports", icon: FileText },
-    ],
-    team_member: [
-      { label: "Meine Aufgaben", href: "/dashboard/team-member", icon: CheckSquare },
-      { label: "Projekte", href: "/dashboard/team-member/projects", icon: FolderKanban },
-      { label: "Dateien & Notizen", href: "/dashboard/team-member/docs", icon: FileText },
-    ],
-    client: [
-      { label: "Mein Projekt", href: "/dashboard/client", icon: FolderKanban },
-      { label: "Projekt starten", href: "/dashboard/client/wizard", icon: LayoutDashboard },
-      { label: "Hilfe & Support", href: "/dashboard/client/help", icon: HelpCircle },
-    ],
-  };
-
-  const navItems = roleNavItems[role] || roleNavItems.client;
 
   return (
-    <aside
-      className={`relative flex flex-col h-screen bg-surface border-r border-line transition-all duration-300 ${
-        isCollapsed ? "w-20" : "w-64"
+    <nav 
+      className={`fixed md:flex flex-col h-screen w-[260px] left-0 top-0 bg-surface shadow-lg md:shadow-sm border-r border-outline-variant z-50 py-6 transition-transform duration-300 ease-in-out ${
+        isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       }`}
     >
-      {/* Brand Header */}
-      <div className="flex items-center gap-3 p-5 border-b border-line">
-        <div className="brand-box flex-shrink-0">F</div>
-        {!isCollapsed && (
-          <div className="flex flex-col overflow-hidden">
-            <span className="font-extrabold text-on-surface text-lg leading-tight truncate">
-              Fusion
-            </span>
-            <span className="text-caption-tiny text-on-surface-variant uppercase tracking-wider font-semibold">
-              Baukasten
-            </span>
-          </div>
-        )}
+      {/* Mobile Close Button */}
+      <div className="md:hidden absolute top-4 right-4">
+        <button onClick={onClose} className="p-2 text-on-surface-variant hover:text-primary">
+          <span className="material-symbols-outlined text-[24px]">close</span>
+        </button>
+      </div>
+      {/* Header */}
+      <div className="flex items-center gap-3 px-6 mb-8 h-16">
+        <div className="bg-gradient-to-br from-primary-container to-[#3f2bc4] w-10 h-10 rounded flex-shrink-0 flex items-center justify-center text-white text-[24px] font-extrabold tracking-tight">
+          F
+        </div>
+        <div className="flex flex-col justify-center">
+          <h1 className="text-[18px] font-bold text-on-surface leading-none">Fusion</h1>
+          <p className="text-[11px] text-on-surface-variant mt-1">Baukasten</p>
+        </div>
       </div>
 
-      {/* Navigation List */}
-      <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto">
+      {/* Navigation Items */}
+      <div className="flex-1 px-4 space-y-1">
         {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href;
-
+          const isActive = pathname === item.href || (pathname.startsWith("/dashboard") && item.label === "Dashboard" && pathname === "/dashboard/project-manager");
+          
           return (
             <Link
-              key={item.href}
+              key={item.label}
               href={item.href}
-              title={isCollapsed ? item.label : undefined}
-              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-body-lg transition-all ${
+              className={`flex items-center gap-4 px-4 py-3 rounded transition-colors ${
                 isActive
-                  ? "bg-primary-container text-on-secondary-container shadow-sm font-semibold"
-                  : "text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface"
-              } ${isCollapsed ? "justify-center" : ""}`}
+                  ? "bg-surface-tint text-on-primary-fixed-variant border-l-4 border-primary rounded-l-none rounded-r-full"
+                  : "text-on-surface-variant hover:bg-surface-container-low"
+              }`}
+              onClick={() => {
+                if (window.innerWidth < 768 && onClose) {
+                  onClose();
+                }
+              }}
             >
-              <Icon className="w-5 h-5 flex-shrink-0" />
-              {!isCollapsed && <span className="truncate">{item.label}</span>}
+              <span 
+                className="material-symbols-outlined" 
+                style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+              >
+                {item.icon}
+              </span>
+              <span className="text-[14px] font-medium">{item.label}</span>
             </Link>
           );
         })}
-      </nav>
+      </div>
 
-      {/* Footer / Toggle Button */}
-      <div className="p-3 border-t border-line flex items-center justify-between">
-        {!isCollapsed && (
-          <span className="text-caption-tiny text-outline px-2">v0.1.0 MVP</span>
-        )}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors ml-auto"
-          title={isCollapsed ? "Menü ausklappen" : "Menü einklappen"}
-        >
-          {isCollapsed ? (
-            <ChevronRight className="w-5 h-5" />
-          ) : (
-            <ChevronLeft className="w-5 h-5" />
-          )}
+      {/* CTA */}
+      <div className="px-4 mt-auto mb-6">
+        <button className="w-full bg-gradient-to-r from-primary to-secondary text-white text-[13px] font-medium py-2 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+          <span className="material-symbols-outlined text-[18px]">add</span>
+          Neues Projekt
         </button>
       </div>
-    </aside>
+
+      {/* Footer Navigation */}
+      <div className="px-4 pt-4 border-t border-line space-y-1">
+        <a className="flex items-center gap-4 px-4 py-2 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded" href="#">
+          <span className="material-symbols-outlined text-[18px]">settings</span>
+          <span className="text-[13px]">Einstellungen</span>
+        </a>
+        <a className="flex items-center gap-4 px-4 py-2 text-on-surface-variant hover:bg-surface-container-low transition-colors rounded" href="#">
+          <span className="material-symbols-outlined text-[18px]">help</span>
+          <span className="text-[13px]">Support</span>
+        </a>
+      </div>
+    </nav>
   );
 }

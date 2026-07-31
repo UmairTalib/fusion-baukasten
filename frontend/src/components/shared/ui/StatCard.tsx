@@ -1,52 +1,53 @@
+"use client";
+
 import React from "react";
-import { LucideIcon } from "lucide-react";
 
 interface StatCardProps {
   title: string;
   value: string | number;
-  icon?: LucideIcon;
-  trend?: string;
+  icon: string;
+  trendText: string;
+  trendIcon?: string;
   trendType?: "positive" | "negative" | "neutral";
-  subtitle?: string;
 }
 
 export default function StatCard({
   title,
   value,
-  icon: Icon,
-  trend,
-  trendType = "positive",
-  subtitle,
+  icon,
+  trendText,
+  trendIcon,
+  trendType = "neutral",
 }: StatCardProps) {
-  const trendColors = {
-    positive: "text-green bg-green/10",
-    negative: "text-red bg-red/10",
-    neutral: "text-on-surface-variant bg-surface-container-low",
-  };
+  
+  // Dynamic colors based on trendType (using Stitch design system colors)
+  let trendColorClass = "text-[#f0a12a] bg-[#fff8ed]"; // fallback/neutral amber-ish
+  
+  if (trendType === "positive") {
+    trendColorClass = "text-[#28a86f] bg-[#eaf7f1]"; // green
+  } else if (trendType === "negative") {
+    trendColorClass = "text-[#f05a5a] bg-[#ffdad6]"; // red
+  } else if (trendType === "neutral") {
+    trendColorClass = "text-[#f0a12a] bg-surface-container-highest"; // amber
+  }
 
   return (
-    <div className="bg-surface p-5 rounded-2xl border border-line shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-body-sm font-medium text-on-surface-variant">{title}</span>
-        {Icon && (
-          <div className="p-2.5 bg-primary-container/10 text-primary rounded-xl">
-            <Icon className="w-5 h-5" />
-          </div>
-        )}
+    <div className="bg-surface rounded-lg p-[18px] shadow-sm border border-line flex flex-col justify-between" style={{ boxShadow: "0 14px 36px rgba(45, 55, 95, 0.08)" }}>
+      <div className="flex justify-between items-start mb-4">
+        <h3 className="text-[12px] font-extrabold text-[#2d375b] uppercase tracking-wider">
+          {title}
+        </h3>
+        <div className="w-8 h-8 rounded bg-[#f4f1ff] flex items-center justify-center text-primary">
+          <span className="material-symbols-outlined text-[20px]">{icon}</span>
+        </div>
       </div>
-
-      <div className="flex items-baseline gap-3">
-        <span className="text-stat-value text-on-surface font-bold">{value}</span>
-        {trend && (
-          <span className={`text-caption-tiny px-2 py-0.5 rounded-full font-semibold ${trendColors[trendType]}`}>
-            {trend}
-          </span>
-        )}
+      <div>
+        <p className="text-[32px] font-bold text-on-surface mb-2">{value}</p>
+        <div className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium ${trendColorClass}`}>
+          {trendIcon && <span className="material-symbols-outlined text-[12px]">{trendIcon}</span>}
+          {trendText}
+        </div>
       </div>
-
-      {subtitle && (
-        <p className="text-caption-tiny text-on-surface-variant mt-2">{subtitle}</p>
-      )}
     </div>
   );
 }
