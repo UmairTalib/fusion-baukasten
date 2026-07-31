@@ -340,18 +340,10 @@ export default function LoginPage() {
             <LoginForm />
           </Suspense>
 
-          {/* Guest & Privacy */}
+          {/* Privacy & Registration Footer */}
           <div className="flex flex-col gap-3 pt-4 border-t border-line">
-            <button
-              onClick={handleGuestLogin}
-              className="w-full py-3 bg-transparent border border-outline text-on-surface-variant rounded-lg text-label-caps hover:bg-surface-container-low transition-colors uppercase tracking-wider"
-              type="button"
-            >
-              Als Gast fortfahren
-            </button>
             <p className="text-body-sm text-on-surface-variant text-center max-w-[90%] mx-auto leading-relaxed">
-              Start ohne Registrierung möglich. Ihr Projekt kann später gespeichert
-              werden. <span className="font-bold">DSGVO-konform.</span>
+              <span className="font-bold">DSGVO-konform.</span>
             </p>
           </div>
 
