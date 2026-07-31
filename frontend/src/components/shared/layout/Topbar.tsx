@@ -114,9 +114,6 @@ export default function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu?: () => 
               <div className="px-4 py-2 mb-1 border-b border-line">
                 <p className="text-[12px] text-on-surface-variant truncate">{session?.email}</p>
               </div>
-              <a className="block px-4 py-2 text-[13px] text-on-surface hover:bg-surface-container-low" href="#">
-                Profil bearbeiten
-              </a>
               <button 
                 onClick={handleLogout}
                 className="w-full text-left block px-4 py-2 text-[13px] text-[#f05a5a] hover:bg-error-container"
