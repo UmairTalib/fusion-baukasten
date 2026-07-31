@@ -1,32 +1,39 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import StatCard from "@/components/shared/ui/StatCard";
+import AssignedTaskList from "@/components/features/team-dashboard/AssignedTaskList";
+import { CheckSquare, Clock, FolderKanban } from "lucide-react";
 
 export default function TeamMemberDashboard() {
-  const router = useRouter();
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    document.cookie = "token=; path=/; max-age=0";
-    document.cookie = "role=; path=/; max-age=0";
-    router.push("/login");
-  };
-
   return (
-    <div className="min-h-screen bg-workspace-bg p-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-page-title text-on-surface">Team Member Dashboard</h1>
-        <button 
-          onClick={handleLogout}
-          className="px-4 py-2 bg-error-container text-on-error-container rounded-lg font-semibold hover:opacity-90 transition-opacity"
-        >
-          Logout
-        </button>
+    <div className="space-y-8">
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <StatCard
+          title="Zugewiesene Aufgaben"
+          value={3}
+          icon={CheckSquare}
+          trend="1 hohe Priorität"
+          trendType="negative"
+        />
+        <StatCard
+          title="Fällig diese Woche"
+          value={2}
+          icon={Clock}
+          trend="Pünktlich"
+          trendType="positive"
+        />
+        <StatCard
+          title="Meine Projekte"
+          value={2}
+          icon={FolderKanban}
+          trend="Aktiv"
+          trendType="neutral"
+        />
       </div>
-      <p className="text-body-lg text-on-surface-variant mt-4">
-        Welcome to the Team Member view. This page is currently a placeholder.
-      </p>
+
+      {/* Task List */}
+      <AssignedTaskList />
     </div>
   );
 }

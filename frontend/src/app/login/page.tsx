@@ -307,16 +307,14 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
-  const router = import("next/navigation").then(mod => mod.useRouter());
+  const router = useRouter();
 
   const handleGuestLogin = () => {
     const guestId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     localStorage.setItem("guest_session_id", guestId);
     document.cookie = `guest_session_id=${guestId}; path=/; max-age=86400`; // 1 day
     
-    // Instead of resolving the promise, just use window.location.href if it's simpler, 
-    // or properly use the useRouter hook at the top level
-    window.location.href = "/dashboard/client";
+    router.push("/dashboard/client");
   };
 
   return (

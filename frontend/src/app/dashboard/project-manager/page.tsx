@@ -1,32 +1,54 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import StatCard from "@/components/shared/ui/StatCard";
+import ProjectListTable from "@/components/features/pm-dashboard/ProjectListTable";
+import RecentActivityFeed from "@/components/features/pm-dashboard/RecentActivityFeed";
+import { FolderKanban, CheckSquare, Users, Award } from "lucide-react";
 
 export default function ProjectManagerDashboard() {
-  const router = useRouter();
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    document.cookie = "token=; path=/; max-age=0";
-    document.cookie = "role=; path=/; max-age=0";
-    router.push("/login");
-  };
-
   return (
-    <div className="min-h-screen bg-workspace-bg p-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-page-title text-on-surface">Project Manager Dashboard</h1>
-        <button 
-          onClick={handleLogout}
-          className="px-4 py-2 bg-error-container text-on-error-container rounded-lg font-semibold hover:opacity-90 transition-opacity"
-        >
-          Logout
-        </button>
+    <div className="space-y-8">
+      {/* KPI Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <StatCard
+          title="Aktive Projekte"
+          value={3}
+          icon={FolderKanban}
+          trend="+1 diesen Monat"
+          trendType="positive"
+        />
+        <StatCard
+          title="Offene Aufgaben"
+          value={8}
+          icon={CheckSquare}
+          trend="2 fällig heute"
+          trendType="negative"
+        />
+        <StatCard
+          title="Teammitglieder"
+          value={12}
+          icon={Users}
+          trend="In 4 Projekten"
+          trendType="neutral"
+        />
+        <StatCard
+          title="Abgeschlossen"
+          value={15}
+          icon={Award}
+          trend="100% Quote"
+          trendType="positive"
+        />
       </div>
-      <p className="text-body-lg text-on-surface-variant mt-4">
-        Welcome to the Project Manager view. This page is currently a placeholder.
-      </p>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <ProjectListTable />
+        </div>
+        <div>
+          <RecentActivityFeed />
+        </div>
+      </div>
     </div>
   );
 }
