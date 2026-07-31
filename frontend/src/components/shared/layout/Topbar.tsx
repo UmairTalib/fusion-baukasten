@@ -20,7 +20,7 @@ export default function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu?: () => 
     // Fetch the current user session from the backend
     const fetchSession = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/v1/auth/session", {
+        const res = await fetch("http://localhost:8000/api/v1/auth/session", {
           credentials: "include"
         });
 
@@ -38,7 +38,7 @@ export default function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu?: () => 
 
   const handleLogout = async () => {
     try {
-      await fetch("http://127.0.0.1:8000/api/v1/auth/logout", {
+      await fetch("http://localhost:8000/api/v1/auth/logout", {
         method: "POST",
         credentials: "include"
       });

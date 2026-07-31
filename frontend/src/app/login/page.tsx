@@ -40,7 +40,7 @@ function LoginForm() {
           const firstName = splitName[0];
           const lastName = splitName.slice(1).join(" ") || "";
           
-          const response = await fetch("http://127.0.0.1:8000/api/v1/auth/sso", {
+          const response = await fetch("http://localhost:8000/api/v1/auth/sso", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -90,7 +90,7 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/v1/auth/login", {
+      const response = await fetch("http://localhost:8000/api/v1/auth/login", {
         method: "POST",
         credentials: "include",
         headers: {
@@ -119,7 +119,7 @@ function LoginForm() {
   const handleRoleAssign = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/v1/auth/assign-role", {
+      const response = await fetch("http://localhost:8000/api/v1/auth/assign-role", {
         method: "POST",
         credentials: "include",
         headers: {

@@ -100,3 +100,64 @@ def get_dashboard_stats(
         }
         
     return stats
+
+
+from app.models.domain4_collab import Milestone
+
+@router.get("/projects")
+def get_dashboard_projects(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user)
+):
+    """Returns projects with their computed progress and next step."""
+    if current_user.system_role != "project_manager":
+        return []
+    
+    projects = db.query(Project).filter(Project.owner_id == current_user.id).all()
+    result = []
+    for p in projects:
+        # progress
+        total = len(p.tasks)
+        completed = sum(1 for t in p.tasks if t.status == TaskStatus.completed)
+        progress = int((completed / total) * 100) if total > 0 else 0
+        
+        # next step
+        open_tasks = [t for t in p.tasks if t.status != TaskStatus.completed]
+        next_step = open_tasks[0].title if open_tasks else "Keine offenen Aufgaben"
+        
+        # map status to UI string
+        status_str = "Aktiv"
+        if p.status.value == "idea_draft": status_str = "Entwurf"
+        elif p.status.value == "completed": status_str = "Abgeschlossen"
+        
+        result.append({
+            "id": str(p.id),
+            "name": p.name,
+            "status": status_str,
+            "progress": progress,
+            "next_step": next_step
+        })
+    return result
+
+@router.get("/milestones")
+def get_dashboard_milestones(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user)
+):
+    if current_user.system_role != "project_manager":
+        return []
+        
+    milestones = db.query(Milestone).join(Project).filter(
+        Project.owner_id == current_user.id,
+        Milestone.is_completed == False
+    ).order_by(Milestone.due_date).limit(5).all()
+    
+    return [
+        {
+            "id": str(m.id),
+            "title": m.title,
+            "due_date": m.due_date.isoformat() if m.due_date else None,
+            "project_name": m.project.name
+        }
+        for m in milestones
+    ]
