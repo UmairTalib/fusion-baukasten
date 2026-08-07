@@ -92,3 +92,26 @@ class Team(Base):
 
     # Relationships
     organization = relationship("Organization", back_populates="teams")
+
+class InvitationStatus(str, enum.Enum):
+    pending = "pending"
+    accepted = "accepted"
+    expired = "expired"
+    cancelled = "cancelled"
+
+class Invitation(Base):
+    __tablename__ = "invitations"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email = Column(String, index=True, nullable=False)
+    org_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
+    inviter_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    token = Column(String, unique=True, index=True, nullable=False)
+    role = Column(String, default="member") # project_manager, member, viewer
+    status = Column(Enum(InvitationStatus), default=InvitationStatus.pending)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    expires_at = Column(DateTime(timezone=True))
+
+    # Relationships
+    organization = relationship("Organization")
+    inviter = relationship("User")

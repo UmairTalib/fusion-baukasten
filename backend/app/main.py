@@ -4,6 +4,7 @@ from app.api import auth
 from app.api.auth import router as auth_router
 from app.api.dashboard import router as dashboard_router
 from app.api.tasks import router as tasks_router
+from app.api.invitations import router as invitations_router
 
 from app.core.rate_limit import limiter
 from slowapi import _rate_limit_exceeded_handler
@@ -26,6 +27,7 @@ api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
 api_router.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 api_router.include_router(tasks_router, prefix="/tasks", tags=["tasks"])
+api_router.include_router(invitations_router, prefix="/invitations", tags=["invitations"])
 
 app.include_router(api_router)
 

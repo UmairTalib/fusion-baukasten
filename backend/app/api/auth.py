@@ -37,8 +37,9 @@ class UserCreate(BaseModel):
     password: str
     first_name: str
     last_name: str
-    organization: str
+    organization: Optional[str] = ""
     system_role: Optional[str] = "client"  # project_manager | team_member | client
+    invite_token: Optional[str] = None
 
 
 class GuestConvertRequest(BaseModel):
@@ -201,30 +202,54 @@ def register_user(
     db.commit()
     db.refresh(new_user)
 
-    # Link organization if provided
-    if user_in.organization:
-        org = db.query(Organization).filter(Organization.name == user_in.organization).first()
-        if not org:
-            org = Organization(name=user_in.organization)
-            db.add(org)
-            db.commit()
-            db.refresh(org)
-
-        membership = Membership(user_id=new_user.id, org_id=org.id, org_role="editor")
+    # Process Invitation token if provided
+    verification_required = True
+    if user_in.invite_token:
+        from app.models.domain1_stammdaten import Invitation, InvitationStatus
+        invitation = db.query(Invitation).filter(
+            Invitation.token == user_in.invite_token,
+            Invitation.status == InvitationStatus.pending
+        ).first()
+        if not invitation:
+            raise HTTPException(status_code=400, detail="Ungültiger oder abgelaufener Einladungs-Token")
+        
+        # Auto-verify email
+        new_user.is_verified = True
+        verification_required = False
+        
+        # Link user to organization
+        membership = Membership(user_id=new_user.id, org_id=invitation.org_id, org_role="member")
         db.add(membership)
+        
+        # Update invitation
+        invitation.status = InvitationStatus.accepted
         db.commit()
+    else:
+        # Normal registration flow: Link organization if provided
+        if user_in.organization:
+            org = db.query(Organization).filter(Organization.name == user_in.organization).first()
+            if not org:
+                org = Organization(name=user_in.organization)
+                db.add(org)
+                db.commit()
+                db.refresh(org)
 
-    # Generate verification token
-    access_token_expires = timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
-    token_str = create_access_token(str(new_user.id), expires_delta=access_token_expires)
-    
-    # Send verification email
-    from app.core.email import send_verification_email
-    send_verification_email(new_user.email, token_str)
+            membership = Membership(user_id=new_user.id, org_id=org.id, org_role="editor")
+            db.add(membership)
+            db.commit()
+
+    if verification_required:
+        # Generate verification token
+        access_token_expires = timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
+        token_str = create_access_token(str(new_user.id), expires_delta=access_token_expires)
+        
+        # Send verification email
+        from app.core.email import send_verification_email
+        send_verification_email(new_user.email, token_str)
 
     return {
-        "msg": "Bitte bestätigen Sie Ihre E-Mail-Adresse",
-        "verification_required": True
+        "msg": "Bitte bestätigen Sie Ihre E-Mail-Adresse" if verification_required else "Registrierung erfolgreich. Sie können sich nun anmelden.",
+        "verification_required": verification_required
     }
 
 

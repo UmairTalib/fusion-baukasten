@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -18,12 +18,39 @@ export default function RegisterPage() {
     privacyConsent: false,
   });
 
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+  
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-
+  const [isValidToken, setIsValidToken] = useState(false);
+  
+  useEffect(() => {
+    if (token) {
+      const verifyToken = async () => {
+        try {
+          const res = await fetch(`http://localhost:8000/api/v1/invitations/verify/${token}`);
+          if (res.ok) {
+            const data = await res.json();
+            setFormData(prev => ({
+              ...prev,
+              email: data.email,
+              organization: data.org_name || "",
+              systemRole: data.role || "team_member"
+            }));
+            setIsValidToken(true);
+          } else {
+            setError("Der Einladungslink ist ungültig oder abgelaufen.");
+          }
+        } catch (e) {
+          setError("Fehler beim Überprüfen der Einladung.");
+        }
+      };
+      verifyToken();
+    }
+  }, [token]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -76,6 +103,7 @@ export default function RegisterPage() {
           organization: formData.organization,
           system_role: formData.systemRole,
           privacy_consent: formData.privacyConsent,
+          invite_token: token || undefined,
         }),
       });
 
@@ -183,61 +211,66 @@ export default function RegisterPage() {
               Dienstliche E-Mail-Adresse
             </label>
             <input
-              className="input-field text-body-sm"
+              className={`input-field text-body-sm ${isValidToken ? 'bg-bg-subtle text-outline cursor-not-allowed' : ''}`}
               id="email"
               placeholder="z. B. name@organisation.de"
               type="email"
               value={formData.email}
               onChange={handleChange}
               required
+              readOnly={isValidToken}
             />
           </div>
-          <div className="space-y-1.5">
-            <label
-              className="block text-label-caps text-label-text uppercase"
-              htmlFor="organization"
-            >
-              Organisation / Kommune
-            </label>
-            <input
-              className="input-field text-body-sm"
-              id="organization"
-              placeholder="z. B. Stadt Siegen"
-              type="text"
-              value={formData.organization}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label
-              className="block text-label-caps text-label-text uppercase"
-              htmlFor="systemRole"
-            >
-              Rolle auswählen
-            </label>
-            <div className="relative">
-              <select
-                className="input-field text-body-sm appearance-none cursor-pointer pr-10 bg-white"
-                id="systemRole"
-                value={formData.systemRole}
-                onChange={handleChange}
-                required
-              >
-                <option disabled value="">
-                  Bitte wählen...
-                </option>
-                <option value="project_manager">Projektmanager:in</option>
-                <option value="team_member">Teammitglied</option>
-                <option value="client">Kunde / Externe:r</option>
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-outline">
-                <span className="material-symbols-outlined text-[20px]">
-                  expand_more
-                </span>
+          {!isValidToken && (
+            <>
+              <div className="space-y-1.5">
+                <label
+                  className="block text-label-caps text-label-text uppercase"
+                  htmlFor="organization"
+                >
+                  Organisation / Kommune
+                </label>
+                <input
+                  className="input-field text-body-sm"
+                  id="organization"
+                  placeholder="z. B. Stadt Siegen"
+                  type="text"
+                  value={formData.organization}
+                  onChange={handleChange}
+                  required
+                />
               </div>
-            </div>
-          </div>
+              <div className="space-y-1.5">
+                <label
+                  className="block text-label-caps text-label-text uppercase"
+                  htmlFor="systemRole"
+                >
+                  Rolle auswählen
+                </label>
+                <div className="relative">
+                  <select
+                    className="input-field text-body-sm appearance-none cursor-pointer pr-10 bg-white"
+                    id="systemRole"
+                    value={formData.systemRole}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option disabled value="">
+                      Bitte wählen...
+                    </option>
+                    <option value="project_manager">Projektmanager:in</option>
+                    <option value="team_member">Teammitglied</option>
+                    <option value="client">Kunde / Externe:r</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-outline">
+                    <span className="material-symbols-outlined text-[20px]">
+                      expand_more
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label
@@ -347,9 +380,16 @@ export default function RegisterPage() {
             >
               Hier anmelden
             </Link>
-          </p>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Laden...</div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }

@@ -122,7 +122,9 @@ function LoginForm() {
       }
 
       const data = await response.json();
+      localStorage.setItem("token", data.access_token);
       localStorage.setItem("role", data.role);
+      document.cookie = `access_token=${data.access_token}; path=/; max-age=86400; samesite=lax`;
       document.cookie = `role=${data.role}; path=/; max-age=86400`;
       routeByRole(data.role);
 
@@ -164,7 +166,9 @@ function LoginForm() {
       if (!response.ok) throw new Error("Rolle konnte nicht zugewiesen werden.");
       const data = await response.json();
       
+      localStorage.setItem("token", data.access_token);
       localStorage.setItem("role", data.role);
+      document.cookie = `access_token=${data.access_token}; path=/; max-age=86400; samesite=lax`;
       document.cookie = `role=${data.role}; path=/; max-age=86400`;
       setShowRoleModal(false);
       routeByRole(data.role);
