@@ -112,10 +112,13 @@ def get_dashboard_projects(
     current_user: User = Depends(deps.get_current_user)
 ):
     """Returns projects with their computed progress and next step."""
-    if current_user.system_role != "project_manager":
+    if current_user.system_role == "project_manager":
+        projects = db.query(Project).filter(Project.owner_id == current_user.id).all()
+    elif current_user.system_role == "team_member":
+        projects = db.query(Project).join(TeamMember).filter(TeamMember.user_id == current_user.id).all()
+    else:
         return []
     
-    projects = db.query(Project).filter(Project.owner_id == current_user.id).all()
     result = []
     for p in projects:
         # progress
@@ -137,13 +140,20 @@ def get_dashboard_projects(
         if p.status.value == "idea_draft": status_str = "Entwurf"
         elif p.status.value == "completed": status_str = "Abgeschlossen"
         
+        role_str = "Owner"
+        if current_user.system_role == "team_member":
+            tm = next((tm for tm in p.team_members if tm.user_id == current_user.id), None)
+            if tm:
+                role_str = tm.team_role.value
+                
         result.append({
             "id": str(p.id),
             "name": p.name,
             "status": status_str,
             "progress": progress,
             "next_step": next_step,
-            "is_at_risk": is_at_risk
+            "is_at_risk": is_at_risk,
+            "role": role_str
         })
     return result
 
@@ -176,21 +186,81 @@ def get_dashboard_activity(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user)
 ):
-    if current_user.system_role != "project_manager":
+    if current_user.system_role == "project_manager":
+        logs = db.query(ActivityLog).join(Project).filter(
+            Project.owner_id == current_user.id
+        ).order_by(ActivityLog.created_at.desc()).limit(15).all()
+    elif current_user.system_role == "team_member":
+        logs = db.query(ActivityLog).join(Project).join(TeamMember, TeamMember.project_id == Project.id).filter(
+            TeamMember.user_id == current_user.id
+        ).order_by(ActivityLog.created_at.desc()).limit(15).all()
+    else:
         return []
-    
-    logs = db.query(ActivityLog).join(Project).filter(
-        Project.owner_id == current_user.id
-    ).order_by(ActivityLog.created_at.desc()).limit(15).all()
     
     result = []
     for log in logs:
+        actor_name = "System"
+        if log.actor:
+            first = getattr(log.actor, "first_name", "") or ""
+            last = getattr(log.actor, "last_name", "") or ""
+            actor_name = f"{first} {last}".strip() or log.actor.email
+
         result.append({
             "id": str(log.id),
             "project_name": log.project.name if log.project else "Unbekannt",
             "action": log.action_type,
             "details": log.details,
             "created_at": log.created_at.isoformat() if log.created_at else None,
-            "actor_name": log.actor.name if log.actor else "System"
+            "actor_name": actor_name
         })
     return result
+
+from app.models.domain4_collab import TaskStatus, Task
+
+@router.get("/upcoming-deadlines")
+def get_upcoming_deadlines(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user)
+):
+    if current_user.system_role != "team_member":
+        return []
+        
+    tasks = db.query(Task).filter(
+        Task.owner_id == current_user.id,
+        Task.status != TaskStatus.completed,
+        Task.current_deadline != None
+    ).order_by(Task.current_deadline).limit(4).all()
+    
+    return [
+        {
+            "id": str(t.id),
+            "title": t.title,
+            "due_date": t.current_deadline.isoformat(),
+            "project_name": t.project.name if t.project else "Unbekannt"
+        } for t in tasks
+    ]
+
+
+@router.get("/tasks")
+def get_dashboard_tasks(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user)
+):
+    if current_user.system_role != "team_member":
+        return []
+        
+    tasks = db.query(Task).filter(
+        Task.owner_id == current_user.id
+    ).order_by(Task.created_at.desc()).all()
+    
+    return [
+        {
+            "id": str(t.id),
+            "title": t.title,
+            "status": t.status.value,
+            "priority": t.priority.value if hasattr(t, 'priority') else "normal",
+            "due_date": t.current_deadline.isoformat() if t.current_deadline else None,
+            "project_name": t.project.name if t.project else "Unbekannt",
+            "assignee_avatar": t.owner.avatar_url if hasattr(t.owner, 'avatar_url') else None
+        } for t in tasks
+    ]
