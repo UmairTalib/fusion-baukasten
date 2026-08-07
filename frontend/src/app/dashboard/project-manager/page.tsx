@@ -8,7 +8,7 @@ import ActivityFeed from "@/components/features/pm-dashboard/ActivityFeed";
 
 export default function ProjectManagerDashboard() {
   return (
-    <div className="w-full">
+    <div className="w-full p-4 md:p-[34px]">
       <PMKPIs />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-[18px]">
         {/* Main Content Area (Active Projects) */}

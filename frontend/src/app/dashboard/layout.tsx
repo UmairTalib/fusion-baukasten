@@ -28,7 +28,7 @@ export default function DashboardLayout({
       <main className="flex-1 flex flex-col md:ml-[260px] h-screen bg-[#f8faff] w-full min-w-0">
         <Topbar onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
         
-        <div className="flex-1 overflow-y-auto p-4 md:p-[34px]">
+        <div className="flex-1 overflow-y-auto flex flex-col relative min-h-0">
           {children}
         </div>
       </main>

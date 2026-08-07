@@ -1,149 +1,133 @@
 @import "tailwindcss";
 
 @theme {
-  --color-on-surface: #0d1b37;
-  --color-surface-container: #eaedff;
-  --color-surface-bright: #faf8ff;
-  --color-line: #e0e6f2;
-  --color-secondary-container: #6c5ef1;
-  --color-tertiary: #003f9c;
-  --color-on-secondary-container: #fffbff;
-  --color-tertiary-fixed: #dae2ff;
-  --color-tertiary-container: #1456c5;
-  --color-primary-fixed-dim: #c9bfff;
-  --color-on-secondary-fixed: #140067;
-  --color-surface-container-low: #f2f3ff;
-  --color-panel-soft: #f4f1ff;
-  --color-error-container: #ffdad6;
-  --color-label-text: #2d375b;
-  --color-on-primary-container: #d8d0ff;
+  /* Colors */
   --color-surface-container-highest: #d9e2ff;
-  --color-background: #faf8ff;
+  --color-on-primary: #ffffff;
+  --color-on-tertiary-container: #c8d5ff;
+  --color-on-surface: #0d1b37;
+  --color-inverse-surface: #24304d;
+  --color-secondary-fixed: #dde1ff;
+  --color-on-background: #0d1b37;
+  --color-secondary-fixed-dim: #bec5ec;
+  --color-on-primary-container: #d8d0ff;
   --color-on-tertiary-fixed: #001947;
   --color-on-primary-fixed: #1b0063;
-  --color-primary-container: #5c3be0;
-  --color-on-surface-variant: #484555;
-  --color-secondary: #5243d7;
-  --color-primary: #4414c9;
-  --color-surface-container-lowest: #ffffff;
-  --color-surface-container-high: #e2e7ff;
-  --color-on-background: #0d1b37;
-  --color-green: #28a86f;
-  --color-red: #f05a5a;
-  --color-on-tertiary: #ffffff;
-  --color-surface-dim: #cdd9ff;
-  --color-secondary-fixed-dim: #c5c0ff;
+  --color-surface-container: #eaedff;
+  --color-surface-container-low: #f2f3ff;
   --color-outline: #797587;
-  --color-on-error-container: #93000a;
-  --color-outline-variant: #c9c4d8;
-  --color-inverse-surface: #24304d;
-  --color-surface: #ffffff;
-  --color-on-primary: #ffffff;
-  --color-workspace-bg: #f8faff;
+  --color-on-secondary-container: #545c7d;
+  --color-on-tertiary: #ffffff;
+  --color-bg-subtle: #f8faff;
+  --color-surface-dim: #cdd9ff;
+  --color-primary: #4414c9;
   --color-primary-fixed: #e5deff;
-  --color-segmented-bg: #eef1f8;
-  --color-on-secondary-fixed-variant: #3c27c1;
-  --color-on-error: #ffffff;
-  --color-amber: #f0a12a;
-  --color-surface-tint: #5e3de2;
-  --color-inverse-on-surface: #eef0ff;
-  --color-inverse-primary: #c9bfff;
-  --color-on-primary-fixed-variant: #4518ca;
-  --color-secondary-fixed: #e3dfff;
-  --color-on-tertiary-container: #c8d5ff;
-  --color-error: #ba1a1a;
   --color-surface-variant: #d9e2ff;
+  --color-on-error: #ffffff;
+  --color-on-secondary-fixed: #121a38;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-inverse-primary: #c9bfff;
+  --color-success: #28a86f;
+  --color-warning: #f0a12a;
   --color-tertiary-fixed-dim: #b1c5ff;
+  --color-error: #f05a5a;
+  --color-tertiary-container: #1456c5;
   --color-on-tertiary-fixed-variant: #00419f;
+  --color-outline-variant: #c9c4d8;
+  --color-primary-container: #5c3be0;
+  --color-inverse-on-surface: #eef0ff;
+  --color-tertiary-fixed: #dae2ff;
+  --color-on-surface-variant: #484555;
+  --color-surface-tint: #5e3de2;
+  --color-on-secondary-fixed-variant: #3e4566;
+  --color-border: #e0e6f2;
+  --color-surface: #ffffff;
+  --color-secondary-container: #ced5fd;
   --color-on-secondary: #ffffff;
-  --color-text-primary: #0a1230;
+  --color-surface-container-high: #e2e7ff;
+  --color-tertiary: #003f9c;
+  --color-surface-container-lowest: #ffffff;
+  --color-secondary: #555d7f;
+  --color-primary-fixed-dim: #c9bfff;
+  --color-on-primary-fixed-variant: #4518ca;
+  --color-surface-bright: #faf8ff;
+  --color-background: #faf8ff;
 
-  --spacing-gap-large: 24px;
-  --spacing-copilot-width: 348px;
-  --spacing-container-padding: 34px;
-  --spacing-input-padding: 12px;
-  --spacing-gap-standard: 18px;
-  --spacing-panel-padding: 18px;
-  --spacing-sidebar-width: 260px;
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 12px;
+  --spacing-base: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-gutter: 28px;
+  --spacing-sidebar-width: 280px;
+  --spacing-copilot-width: 360px;
 
-  --font-subheading: "Inter", sans-serif;
-  --font-label-caps: "Inter", sans-serif;
-  --font-hero-heading: "Inter", sans-serif;
-  --font-brand-section: "Inter", sans-serif;
-  --font-page-title: "Inter", sans-serif;
-  --font-body-lg: "Inter", sans-serif;
-  --font-stat-value: "Inter", sans-serif;
-  --font-caption-tiny: "Inter", sans-serif;
+  /* Fonts */
+  --font-h2: "Inter", sans-serif;
+  --font-body-md: "Inter", sans-serif;
   --font-body-sm: "Inter", sans-serif;
+  --font-display: "Inter", sans-serif;
+  --font-label-bold: "Inter", sans-serif;
+  --font-h1-mobile: "Inter", sans-serif;
+  --font-body-lg: "Inter", sans-serif;
+  --font-h1: "Inter", sans-serif;
+  --font-label-caps: "Inter", sans-serif;
 }
 
 @layer utilities {
-  .text-subheading { font-size: 18px; font-weight: 600; }
-  .text-label-caps { font-size: 12px; font-weight: 800; }
-  .text-hero-heading { font-size: 48px; line-height: 1.08; letter-spacing: -0.02em; font-weight: 850; }
-  .text-brand-section { font-size: 24px; font-weight: 850; }
-  .text-page-title { font-size: 30px; line-height: 1.15; font-weight: 800; }
-  .text-body-lg { font-size: 14px; line-height: 1.5; font-weight: 400; }
-  .text-stat-value { font-size: 32px; font-weight: 700; }
-  .text-caption-tiny { font-size: 11px; font-weight: 400; }
-  .text-body-sm { font-size: 13px; line-height: 1.42; font-weight: 400; }
+  .text-h2 { font-size: 18px; line-height: 1.4; font-weight: 700; }
+  .text-body-md { font-size: 14px; line-height: 1.5; font-weight: 400; }
+  .text-body-sm { font-size: 13px; line-height: 1.4; font-weight: 400; }
+  .text-display { font-size: 48px; line-height: 1.1; font-weight: 850; }
+  .text-label-bold { font-size: 12px; line-height: 1; letter-spacing: 0.05em; font-weight: 800; }
+  .text-h1-mobile { font-size: 24px; line-height: 1.2; font-weight: 700; }
+  .text-body-lg { font-size: 16px; line-height: 1.5; font-weight: 400; }
+  .text-h1 { font-size: 30px; line-height: 1.2; font-weight: 700; }
+  .text-label-caps { font-size: 11px; line-height: 1; letter-spacing: 0.08em; font-weight: 900; }
+  
+  .bg-ai-gradient {
+    background: linear-gradient(135deg, #5c3be0, #4478e8);
+  }
 }
 
 @layer base {
   body {
-    background-color: var(--color-workspace-bg, #f8faff);
-    color: var(--color-text-primary, #0a1230);
+    background-color: var(--color-bg-subtle, #f8faff);
+    color: var(--color-on-surface, #0a1230);
   }
 }
 
-@layer components {
-  .brand-box {
-    background: linear-gradient(135deg, #5c3be0, #3f2bc4);
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    color: white;
-    font-weight: 900;
-    font-size: 24px;
-  }
+/* Custom scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f2f3ff;
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #c9c4d8;
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #797587;
+}
 
-  .btn-primary {
-    background: linear-gradient(135deg, #4414c9, #5243d7);
-    color: #ffffff;
-    border-radius: 8px;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  
-  .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(92, 59, 224, 0.3);
-  }
-  
-  .btn-primary:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-
-  .input-field {
-    border: 1px solid var(--color-line, #e0e6f2);
-    border-radius: 8px;
-    padding: 12px;
-    width: 100%;
-    background-color: var(--color-surface, #ffffff);
-    color: var(--color-on-surface, #0d1b37);
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  
-  .input-field:focus {
-    outline: none;
-    border-color: var(--color-primary-container, #5c3be0);
-    box-shadow: 0 0 0 2px rgba(92, 59, 224, 0.1);
-  }
-  
-  .input-field::placeholder {
-    color: var(--color-outline, #797587);
-  }
+.kanban-board::-webkit-scrollbar {
+    height: 8px;
+}
+.kanban-board::-webkit-scrollbar-track {
+    background: #f2f3ff;
+    border-radius: 4px;
+}
+.kanban-board::-webkit-scrollbar-thumb {
+    background: #c9c4d8;
+    border-radius: 4px;
+}
+.kanban-board::-webkit-scrollbar-thumb:hover {
+    background: #797587;
 }

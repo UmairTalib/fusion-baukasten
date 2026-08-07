@@ -26,7 +26,7 @@ export default function TeamMemberDashboard() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-[24px]">
+    <div className="flex flex-col gap-[24px] p-4 md:p-[34px]">
       {/* Header */}
       <header className="flex justify-between items-end mb-[12px]">
         <div>

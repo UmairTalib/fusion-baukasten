@@ -3,13 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const navItems = [
-  { label: "Dashboard", href: "/dashboard/project-manager", icon: "dashboard" },
-  { label: "Berichte", href: "/dashboard/reports", icon: "bar_chart" },
-];
-
 export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
+  
+  // Determine role from pathname to generate dynamic links
+  const role = pathname.includes('/team-member') ? 'team-member' : 'project-manager';
+  
+  const dynamicNavItems = [
+    { label: "Dashboard", href: `/dashboard/${role}`, icon: "dashboard" },
+    { label: "Aufgaben", href: `/dashboard/${role}/tasks`, icon: "assignment" },
+    { label: "Team", href: `/dashboard/${role}/team`, icon: "group" },
+    { label: "Berichte", href: `/dashboard/${role}/reports`, icon: "bar_chart" },
+  ];
 
   return (
     <nav 
@@ -36,8 +41,8 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
 
       {/* Navigation Items */}
       <div className="flex-1 px-4 space-y-1">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || (pathname.startsWith("/dashboard") && item.label === "Dashboard" && pathname === "/dashboard/project-manager");
+        {dynamicNavItems.map((item) => {
+          const isActive = pathname === item.href || (pathname === `/dashboard/${role}` && item.href === `/dashboard/${role}`);
           
           return (
             <Link
