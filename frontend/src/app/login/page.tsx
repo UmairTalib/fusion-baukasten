@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
+import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
@@ -10,6 +11,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   
+  const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +22,14 @@ function LoginForm() {
   // SSO Modal State
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState("client"); // default selected in dropdown
+  const [modalFirstName, setModalFirstName] = useState("");
+  const [modalLastName, setModalLastName] = useState("");
+  const [modalOrganization, setModalOrganization] = useState("");
   const [ssoToken, setSsoToken] = useState(""); // to store backend JWT temporarily before assign
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
 
 
@@ -42,6 +51,7 @@ function LoginForm() {
           
           const response = await fetch("http://localhost:8000/api/v1/auth/sso", {
             method: "POST",
+            credentials: "include",
             headers: {
               "Content-Type": "application/json",
             },
@@ -49,19 +59,26 @@ function LoginForm() {
               email: session.user.email,
               first_name: firstName,
               last_name: lastName,
-              provider: (session as any).provider || "unknown"
+              provider: (session as any).provider || "unknown",
+              id_token: (session as any).id_token || ""
             }),
           });
 
           if (!response.ok) throw new Error("SSO Anmeldung fehlgeschlagen.");
           const data = await response.json();
           
+          if (data.is_new_user) {
+            // New user without role - DO NOT SET COOKIES YET
+            setModalFirstName(firstName);
+            setModalLastName(lastName);
+            setShowRoleModal(true);
+            return;
+          }
+          
           localStorage.setItem("role", data.role);
           document.cookie = `role=${data.role}; path=/; max-age=86400`;
           
           if (!data.role) {
-            // New user without role
-            setSsoToken(data.access_token);
             setShowRoleModal(true);
           } else {
             // Existing user with role
@@ -117,8 +134,16 @@ function LoginForm() {
   };
 
   const handleRoleAssign = async () => {
+    if (!modalOrganization.trim()) {
+      setError("Bitte geben Sie eine Organisation ein.");
+      return;
+    }
     setLoading(true);
     try {
+      const splitName = (session?.user?.name || "Gast").split(" ");
+      const firstName = splitName[0];
+      const lastName = splitName.slice(1).join(" ") || "";
+
       const response = await fetch("http://localhost:8000/api/v1/auth/assign-role", {
         method: "POST",
         credentials: "include",
@@ -128,7 +153,11 @@ function LoginForm() {
         },
         body: JSON.stringify({ 
           email: session?.user?.email, 
-          system_role: selectedRole 
+          system_role: selectedRole,
+          first_name: modalFirstName,
+          last_name: modalLastName,
+          organization: modalOrganization,
+          id_token: (session as any).id_token || ""
         }),
       });
 
@@ -152,12 +181,21 @@ function LoginForm() {
   return (
     <>
       {/* Role Selection Modal */}
-      {showRoleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-surface p-8 rounded-xl shadow-[0_14px_36px_rgba(45,55,95,0.08)] border border-outline-variant w-full max-w-md mx-4">
+      {showRoleModal && mounted && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-md">
+          <div className="bg-surface p-8 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-outline-variant w-full max-w-md mx-4 z-[10000] relative">
             <h2 className="text-page-title mb-2 text-on-surface">Ein letzter Schritt!</h2>
             <p className="text-body-lg text-on-surface-variant mb-6">Bitte wählen Sie Ihre Rolle aus, um fortzufahren.</p>
             
+            <label className="text-label-caps text-label-text block mb-2 uppercase tracking-wider">Organisation</label>
+            <input 
+              type="text"
+              className="w-full px-[12px] py-3 bg-surface border border-line rounded-lg font-body-lg text-on-surface mb-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-outline"
+              placeholder="z.B. Kommune Musterstadt"
+              value={modalOrganization}
+              onChange={(e) => setModalOrganization(e.target.value)}
+            />
+
             <label className="text-label-caps text-label-text block mb-2 uppercase tracking-wider">Ihre Funktion/Rolle</label>
             <select 
               className="w-full px-[12px] py-3 bg-surface border border-line rounded-lg font-body-lg text-on-surface mb-6 outline-none focus:border-primary focus:ring-1 focus:ring-primary"
@@ -184,7 +222,8 @@ function LoginForm() {
               {loading ? "WIRD GESPEICHERT..." : "SPEICHERN & FORTFAHREN"}
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Success Message from Registration */}
@@ -316,8 +355,8 @@ export default function LoginPage() {
   return (
     <div className="bg-surface-bright text-text-primary h-screen w-full font-body-sm overflow-hidden flex relative">
       {/* Left Column: Form */}
-      <div className="w-full lg:w-1/2 h-full bg-surface flex flex-col justify-center px-6 sm:px-12 lg:px-24 overflow-y-auto py-12 lg:py-0">
-        <div className="max-w-[440px] w-full mx-auto relative z-10">
+      <div className="w-full lg:w-1/2 h-full bg-surface flex flex-col justify-center px-6 sm:px-12 lg:px-24 overflow-y-auto py-12 lg:py-0 relative z-50 shadow-[0_0_40px_rgba(0,0,0,0.05)]">
+        <div className="max-w-[440px] w-full mx-auto relative z-50">
           {/* Branding */}
           <div className="mb-10 text-center lg:text-left">
             <div className="inline-flex items-center gap-3 mb-3">

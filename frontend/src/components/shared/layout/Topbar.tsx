@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { signOut } from "next-auth/react";
 
 interface UserSession {
   id: string;
@@ -42,6 +43,8 @@ export default function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu?: () => 
         method: "POST",
         credentials: "include"
       });
+      // Also clear the NextAuth session
+      await signOut({ redirect: false });
     } catch (e) {
       console.error(e);
     }

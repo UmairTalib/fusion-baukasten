@@ -33,11 +33,11 @@ export default function StatCard({
 
   return (
     <div className="bg-surface rounded-lg p-[18px] shadow-sm border border-line flex flex-col justify-between" style={{ boxShadow: "0 14px 36px rgba(45, 55, 95, 0.08)" }}>
-      <div className="flex justify-between items-start mb-4">
-        <h3 className="text-[12px] font-extrabold text-[#2d375b] uppercase tracking-wider">
+      <div className="flex justify-between items-start mb-4 gap-2">
+        <h3 className="text-[12px] font-extrabold text-[#2d375b] uppercase tracking-wider break-words flex-1">
           {title}
         </h3>
-        <div className="w-8 h-8 rounded bg-[#f4f1ff] flex items-center justify-center text-primary">
+        <div className="w-8 h-8 rounded bg-[#f4f1ff] flex items-center justify-center text-primary shrink-0">
           <span className="material-symbols-outlined text-[20px]">{icon}</span>
         </div>
       </div>

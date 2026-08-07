@@ -11,7 +11,12 @@ const handler = NextAuth({
     AzureADProvider({
       clientId: process.env.AZURE_AD_CLIENT_ID || "mock_microsoft_client_id",
       clientSecret: process.env.AZURE_AD_CLIENT_SECRET || "mock_microsoft_client_secret",
-      tenantId: "common",
+      tenantId: process.env.AZURE_AD_TENANT_ID || "common",
+      authorization: {
+        params: {
+          scope: "openid profile email",
+        },
+      },
     }),
   ],
   callbacks: {
@@ -21,15 +26,20 @@ const handler = NextAuth({
       return true;
     },
     async jwt({ token, account, user }) {
-      if (account && user) {
+      if (account) {
         token.provider = account.provider;
+        // Capture the id_token if provided by the OAuth provider (e.g. Microsoft/Google)
+        if (account.id_token) {
+          token.id_token = account.id_token;
+        }
       }
       return token;
     },
     async session({ session, token }) {
-      // Expose provider to session
+      // Expose provider and id_token to session so frontend can pass it to FastAPI
       if (session.user) {
         (session as any).provider = token.provider;
+        (session as any).id_token = token.id_token;
       }
       return session;
     }

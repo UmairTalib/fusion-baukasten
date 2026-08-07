@@ -32,10 +32,12 @@ build/
 
 # Database
 *.sqlite3
+*.db
 pgdata/
 04_Integration in KI/
 09_Konzept + Businesslogik/
 10_Überblick/
 11_Backend/
+11. Werkzeugkasten-2/
 12_Kuratierte Wissensbasis/
 Frontend Design/

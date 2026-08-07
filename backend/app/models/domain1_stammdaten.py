@@ -32,7 +32,7 @@ class User(Base):
     language_pref = Column(String, default="de")
 
     # Role-based dashboard routing (Business Logic Section 3)
-    system_role = Column(Enum(SystemRole), default=SystemRole.client)
+    system_role = Column(Enum(SystemRole), nullable=True)
 
     # Guest & Privacy (Business Logic Section 2, Phase 0)
     is_guest = Column(Boolean, default=False)

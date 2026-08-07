@@ -42,12 +42,14 @@ def get_dashboard_stats(
         budget_total = float(budget_query.total) if budget_query.total else 1 # avoid div by zero
         budget_percentage = int((budget_used / budget_total) * 100) if budget_total > 1 else 0
         
-        # 4. Teamleistung (Completed tasks / Total tasks)
+        # 4. Teamleistung (Completed tasks / Total tasks in active projects)
         total_tasks = db.query(func.count(Task.id)).join(Project).filter(
-            Project.owner_id == current_user.id
+            Project.owner_id == current_user.id,
+            Project.status == ProjectStatus.active_execution
         ).scalar()
         completed_tasks = db.query(func.count(Task.id)).join(Project).filter(
             Project.owner_id == current_user.id,
+            Project.status == ProjectStatus.active_execution,
             Task.status == TaskStatus.completed
         ).scalar()
         
@@ -125,6 +127,11 @@ def get_dashboard_projects(
         open_tasks = [t for t in p.tasks if t.status != TaskStatus.completed]
         next_step = open_tasks[0].title if open_tasks else "Keine offenen Aufgaben"
         
+        # At Risk flag
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        is_at_risk = any((t.current_deadline and t.current_deadline < now) for t in open_tasks)
+        
         # map status to UI string
         status_str = "Aktiv"
         if p.status.value == "idea_draft": status_str = "Entwurf"
@@ -135,7 +142,8 @@ def get_dashboard_projects(
             "name": p.name,
             "status": status_str,
             "progress": progress,
-            "next_step": next_step
+            "next_step": next_step,
+            "is_at_risk": is_at_risk
         })
     return result
 
@@ -158,6 +166,31 @@ def get_dashboard_milestones(
             "title": m.title,
             "due_date": m.due_date.isoformat() if m.due_date else None,
             "project_name": m.project.name
-        }
-        for m in milestones
+        } for m in milestones
     ]
+
+from app.models.domain4_collab import ActivityLog
+
+@router.get("/activity")
+def get_dashboard_activity(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user)
+):
+    if current_user.system_role != "project_manager":
+        return []
+    
+    logs = db.query(ActivityLog).join(Project).filter(
+        Project.owner_id == current_user.id
+    ).order_by(ActivityLog.created_at.desc()).limit(15).all()
+    
+    result = []
+    for log in logs:
+        result.append({
+            "id": str(log.id),
+            "project_name": log.project.name if log.project else "Unbekannt",
+            "action": log.action_type,
+            "details": log.details,
+            "created_at": log.created_at.isoformat() if log.created_at else None,
+            "actor_name": log.actor.name if log.actor else "System"
+        })
+    return result

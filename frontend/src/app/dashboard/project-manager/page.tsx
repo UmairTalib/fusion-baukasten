@@ -4,6 +4,7 @@ import React from "react";
 import PMKPIs from "@/components/features/pm-dashboard/PMKPIs";
 import ActiveProjectsTable from "@/components/features/pm-dashboard/ActiveProjectsTable";
 import MilestonesTimeline from "@/components/features/pm-dashboard/MilestonesTimeline";
+import ActivityFeed from "@/components/features/pm-dashboard/ActivityFeed";
 
 export default function ProjectManagerDashboard() {
   return (
@@ -15,9 +16,10 @@ export default function ProjectManagerDashboard() {
           <ActiveProjectsTable />
         </div>
         
-        {/* Right Sidebar Area (Milestones) */}
-        <div className="lg:col-span-1">
+        {/* Right Sidebar Area (Milestones & Activity) */}
+        <div className="lg:col-span-1 flex flex-col gap-4 md:gap-[18px]">
           <MilestonesTimeline />
+          <ActivityFeed />
         </div>
       </div>
     </div>

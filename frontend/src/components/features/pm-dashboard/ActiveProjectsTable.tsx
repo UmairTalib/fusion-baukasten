@@ -8,6 +8,7 @@ interface Project {
   status: string;
   progress: number;
   next_step: string;
+  is_at_risk?: boolean;
 }
 
 export default function ActiveProjectsTable() {
@@ -65,11 +66,18 @@ export default function ActiveProjectsTable() {
                 <tr key={project.id} className={`${index !== projects.length - 1 ? 'border-b border-line' : ''} hover:bg-surface-container-low transition-colors`}>
                   <td className="py-4 font-medium text-on-surface">{project.name}</td>
                   <td className="py-4">
-                    <span className={`inline-flex px-2 py-1 font-medium rounded text-[11px] ${
-                      project.status === 'Entwurf' ? 'bg-surface-container text-on-surface-variant' : 'bg-surface-container-highest text-primary'
-                    }`}>
-                      {project.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex px-2 py-1 font-medium rounded text-[11px] ${
+                        project.status === 'Entwurf' ? 'bg-surface-container text-on-surface-variant' : 'bg-surface-container-highest text-primary'
+                      }`}>
+                        {project.status}
+                      </span>
+                      {project.is_at_risk && (
+                        <span className="inline-flex px-2 py-1 font-medium rounded text-[11px] bg-[#ffdad6] text-[#ba1a1a]">
+                          Verzögert
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="py-4">
                     <div className="flex items-center gap-2">

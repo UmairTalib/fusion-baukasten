@@ -37,7 +37,7 @@ class UserCreate(BaseModel):
     password: str
     first_name: str
     last_name: str
-    organization: Optional[str] = None
+    organization: str
     system_role: Optional[str] = "client"  # project_manager | team_member | client
 
 
@@ -47,7 +47,7 @@ class GuestConvertRequest(BaseModel):
     password: str
     first_name: str
     last_name: str
-    organization: Optional[str] = None
+    organization: str
     system_role: Optional[str] = "client"
 
 
@@ -60,11 +60,18 @@ class SSOJSONRequest(BaseModel):
     first_name: str
     last_name: str
     provider: str
+    id_token: str
 
+
+from typing import Optional
 
 class AssignRoleRequest(BaseModel):
     email: EmailStr
     system_role: str
+    first_name: Optional[str] = ""
+    last_name: Optional[str] = ""
+    organization: str
+    id_token: str
 
 
 import re
@@ -336,42 +343,122 @@ def reset_password(
     return {"message": "Passwort erfolgreich zurückgesetzt."}
 
 
-@router.post("/sso", response_model=Token)
+import httpx
+from jose import jwt
+
+MS_JWKS_URL = "https://login.microsoftonline.com/common/discovery/v2.0/keys"
+_ms_keys = None
+
+def get_ms_keys():
+    global _ms_keys
+    if not _ms_keys:
+        try:
+            resp = httpx.get(MS_JWKS_URL)
+            resp.raise_for_status()
+            _ms_keys = resp.json()
+        except Exception:
+            raise HTTPException(status_code=500, detail="Could not fetch Microsoft JWKS.")
+    return _ms_keys
+
+def verify_microsoft_token(id_token: str, expected_email: str):
+    if not id_token:
+        raise HTTPException(status_code=401, detail="Missing ID Token. Access Denied.")
+        
+    keys = get_ms_keys()
+    try:
+        unverified_header = jwt.get_unverified_header(id_token)
+        rsa_key = {}
+        for key in keys.get("keys", []):
+            if key["kid"] == unverified_header.get("kid"):
+                rsa_key = key
+                break
+        
+        if not rsa_key:
+            raise HTTPException(status_code=401, detail="Invalid token signing key.")
+            
+        payload = jwt.decode(
+            id_token,
+            rsa_key,
+            algorithms=["RS256"],
+            options={"verify_aud": False, "verify_iss": False} 
+        )
+        
+        token_email = (
+            payload.get("email") 
+            or payload.get("preferred_username") 
+            or payload.get("upn") 
+            or payload.get("unique_name")
+        )
+        if not token_email or token_email.lower() != expected_email.lower():
+            print(f"Token email mismatch: token has '{token_email}', expected '{expected_email}'")
+            raise HTTPException(status_code=401, detail="Token email mismatch. Possible spoofing detected.")
+            
+        print(f"DEBUG MICROSOFT JWT PAYLOAD: {payload}")
+        return payload
+    except Exception as e:
+        print(f"Token validation error: {str(e)}")
+        raise HTTPException(status_code=401, detail="Token validation failed.")
+
+@router.post("/sso")
 def sso_login(
     req: SSOJSONRequest,
+    response: Response,
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """
-    Handles Google and Microsoft SSO logins.
-    If user doesn't exist, creates them but leaves system_role as None.
-    If role is None, frontend will intercept and ask for role.
+    Handles Microsoft SSO logins securely using ID Token validation.
     """
+    # 1. Cryptographically verify the token came from Microsoft
+    payload = verify_microsoft_token(req.id_token, req.email)
+
+    # Prefer Microsoft Display Name ('name') over 'given_name', as users often update Display Name in Microsoft settings
+    full_name = payload.get("name") or f"{req.first_name} {req.last_name}".strip()
+    if full_name and " " in full_name:
+        split_name = full_name.split(" ")
+        first_name = split_name[0]
+        last_name = " ".join(split_name[1:])
+    else:
+        first_name = payload.get("given_name") or req.first_name
+        last_name = payload.get("family_name") or req.last_name
+
     user = db.query(User).filter(User.email == req.email).first()
     
     if not user:
-        # Create a new user without a password (SSO) and no initial role
-        user = User(
-            email=req.email,
-            first_name=req.first_name,
-            last_name=req.last_name,
-            hashed_password=None, # No password for SSO users
-            system_role=None, # Intentionally left blank for onboarding
-            privacy_consent=True,
-            is_guest=False,
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+        # User does not exist, return flag to frontend so they can pick a role first
+        return {
+            "is_new_user": True,
+            "access_token": "",
+            "token_type": "bearer",
+            "role": ""
+        }
+
+    # User exists, log them in normally and sync any updated name from Microsoft token
+    if first_name:
+        user.first_name = first_name
+    if last_name:
+        user.last_name = last_name
+    db.commit()
+    db.refresh(user)
 
     access_token_expires = timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
     token_str = create_access_token(str(user.id), expires_delta=access_token_expires)
 
-    # Return role as empty string if None, so frontend knows to show modal
     role_str = ""
     if user.system_role:
         role_str = user.system_role.value if hasattr(user.system_role, 'value') else str(user.system_role)
 
+    # Set the HttpOnly cookie for Next.js middleware!
+    response.set_cookie(
+        key="access_token",
+        value=token_str,
+        httponly=True,
+        max_age=security.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        expires=security.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        samesite="lax",
+    )
+
     return {
+        "is_new_user": False,
         "access_token": token_str,
         "token_type": "bearer",
         "role": role_str,
@@ -388,17 +475,26 @@ def sso_login(
 @router.post("/assign-role", response_model=Token)
 def assign_role(
     req: AssignRoleRequest,
+    response: Response,
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """
-    Allows a new SSO user to assign their role.
+    Allows a new SSO user to assign their role, verified via ID Token.
     """
-    user = db.query(User).filter(User.email == req.email).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Benutzer nicht gefunden")
+    # 1. Cryptographically verify the token came from Microsoft
+    payload = verify_microsoft_token(req.id_token, req.email)
 
-    if user.system_role:
-        raise HTTPException(status_code=400, detail="Benutzer hat bereits eine Rolle")
+    # Prefer Microsoft Display Name ('name') over 'given_name', as users often update Display Name in Microsoft settings
+    full_name = payload.get("name") or f"{req.first_name} {req.last_name}".strip()
+    if full_name and " " in full_name:
+        split_name = full_name.split(" ")
+        first_name = split_name[0]
+        last_name = " ".join(split_name[1:])
+    else:
+        first_name = req.first_name or payload.get("given_name") or ""
+        last_name = req.last_name or payload.get("family_name") or ""
+
+    user = db.query(User).filter(User.email == req.email).first()
 
     role_enum = SystemRole.client
     if req.system_role in SystemRole.__members__:
@@ -406,13 +502,59 @@ def assign_role(
     else:
         raise HTTPException(status_code=400, detail="Ungültige Rolle")
 
-    user.system_role = role_enum
-    db.commit()
-    db.refresh(user)
+    if not user:
+        # User doesn't exist yet! Create them now with their chosen role.
+        user = User(
+            email=req.email,
+            first_name=first_name,
+            last_name=last_name,
+            hashed_password=None,
+            system_role=role_enum,
+            privacy_consent=True,
+            is_guest=False,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    else:
+        if user.system_role:
+            raise HTTPException(status_code=400, detail="Benutzer hat bereits eine Rolle")
+        user.system_role = role_enum
+        if first_name:
+            user.first_name = first_name
+        if last_name:
+            user.last_name = last_name
+        db.commit()
+        db.refresh(user)
+
+    if req.organization:
+        org = db.query(Organization).filter(Organization.name == req.organization).first()
+        if not org:
+            org = Organization(name=req.organization)
+            db.add(org)
+            db.commit()
+            db.refresh(org)
+
+        existing_membership = db.query(Membership).filter(Membership.user_id == user.id, Membership.org_id == org.id).first()
+        if not existing_membership:
+            membership = Membership(user_id=user.id, org_id=org.id, org_role="editor")
+            db.add(membership)
+            db.commit()
+
 
     access_token_expires = timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
     token_str = create_access_token(str(user.id), expires_delta=access_token_expires)
     role_str = role_enum.value if hasattr(role_enum, 'value') else str(role_enum)
+
+    # Set the HttpOnly cookie for Next.js middleware!
+    response.set_cookie(
+        key="access_token",
+        value=token_str,
+        httponly=True,
+        max_age=security.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        expires=security.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        samesite="lax",
+    )
 
     return {
         "access_token": token_str,
