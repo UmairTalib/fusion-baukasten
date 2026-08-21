@@ -64,9 +64,9 @@ export default function ActivityFeed() {
   }
 
   return (
-    <div className="bg-surface rounded-xl shadow-sm border border-line flex flex-col h-full">
-      <div className="p-5 border-b border-line flex items-center justify-between">
-        <h2 className="text-[18px] font-bold text-on-surface">Letzte Aktivitäten</h2>
+    <div className="bg-surface/80 backdrop-blur-md rounded-2xl border border-white shadow-[0_14px_36px_rgba(45,55,95,0.08)] flex flex-col h-full transition-transform duration-300 hover:-translate-y-1">
+      <div className="p-[24px] border-b border-line flex items-center justify-between">
+        <h2 className="text-h2 text-on-surface">Letzte Aktivitäten</h2>
         <span className="material-symbols-outlined text-outline">history</span>
       </div>
       

@@ -87,9 +87,44 @@
   .text-body-lg { font-size: 16px; line-height: 1.5; font-weight: 400; }
   .text-h1 { font-size: 30px; line-height: 1.2; font-weight: 700; }
   .text-label-caps { font-size: 11px; line-height: 1; letter-spacing: 0.08em; font-weight: 900; }
-  
+
+  /* Aliases for missing login classes */
+  .text-hero-heading { font-size: 48px; line-height: 1.1; font-weight: 850; }
+  .text-page-title { font-size: 30px; line-height: 1.2; font-weight: 700; }
+  .text-subheading { font-size: 16px; line-height: 1.5; font-weight: 400; }
+  .text-brand-section { font-size: 18px; line-height: 1.2; font-weight: 700; }
+
   .bg-ai-gradient {
     background: linear-gradient(135deg, #5c3be0, #4478e8);
+  }
+
+  /* Premium form input — used across all auth pages */
+  .input-field {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--color-outline-variant);
+    background: #ffffff;
+    color: var(--color-on-surface);
+    font-size: 14px;
+    font-family: "Inter", sans-serif;
+    line-height: 1.5;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .input-field::placeholder {
+    color: var(--color-outline);
+  }
+  .input-field:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(68, 20, 201, 0.12);
+  }
+  .input-field:read-only,
+  .input-field[disabled] {
+    background: var(--color-surface-container-low);
+    color: var(--color-outline);
+    border-color: var(--color-outline-variant);
+    cursor: not-allowed;
   }
 }
 
@@ -97,6 +132,7 @@
   body {
     background-color: var(--color-bg-subtle, #f8faff);
     color: var(--color-on-surface, #0a1230);
+    font-family: "Inter", sans-serif;
   }
 }
 

@@ -39,9 +39,11 @@ export default function MilestonesTimeline() {
   };
 
   return (
-    <div className="bg-surface rounded-lg shadow-sm border border-line p-[18px] transition-transform duration-300 hover:-translate-y-1 h-fit w-full" style={{ boxShadow: "0 14px 36px rgba(45, 55, 95, 0.08)" }}>
-      <h3 className="text-[18px] font-bold text-on-surface mb-6">Kommende Meilensteine</h3>
-      
+    <div className="bg-surface/80 backdrop-blur-md rounded-2xl border border-white shadow-[0_14px_36px_rgba(45,55,95,0.08)] flex flex-col transition-transform duration-300 hover:-translate-y-1">
+      <div className="p-[24px] border-b border-line flex justify-between items-center">
+        <h2 className="text-h2 text-on-surface">Kommende Meilensteine</h2>
+        <span className="material-symbols-outlined text-outline">flag</span>
+      </div>
       {loading ? (
         <div className="flex justify-center p-8">
           <span className="animate-spin material-symbols-outlined text-[24px] text-primary">progress_activity</span>

@@ -44,11 +44,11 @@ class User(Base):
     last_login = Column(DateTime(timezone=True))
 
     # Relationships
-    memberships = relationship("Membership", back_populates="user")
-    projects_owned = relationship("Project", back_populates="owner")
-    messages_sent = relationship("Message", back_populates="sender")
-    notifications = relationship("Notification", back_populates="user")
-    tasks_owned = relationship("Task", back_populates="owner", foreign_keys="Task.owner_id")
+    memberships = relationship("Membership", back_populates="user", cascade="all, delete-orphan")
+    projects_owned = relationship("Project", back_populates="owner", cascade="all, delete-orphan")
+    messages_sent = relationship("Message", back_populates="sender", cascade="all, delete-orphan")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
+    tasks_owned = relationship("Task", back_populates="owner", foreign_keys="Task.owner_id", cascade="all, delete-orphan")
 
 
 class Organization(Base):
@@ -61,8 +61,8 @@ class Organization(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
-    memberships = relationship("Membership", back_populates="organization")
-    teams = relationship("Team", back_populates="organization")
+    memberships = relationship("Membership", back_populates="organization", cascade="all, delete-orphan")
+    teams = relationship("Team", back_populates="organization", cascade="all, delete-orphan")
 
 
 class Membership(Base):
@@ -70,8 +70,8 @@ class Membership(Base):
     __tablename__ = "memberships"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    org_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    org_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True)
     org_role = Column(String, default="viewer")   # owner / editor / viewer
     joined_at = Column(DateTime(timezone=True), server_default=func.now())
     is_active = Column(Boolean, default=True)
@@ -85,7 +85,7 @@ class Team(Base):
     __tablename__ = "teams"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    org_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
+    org_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String, nullable=False)
     description = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -104,8 +104,8 @@ class Invitation(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String, index=True, nullable=False)
-    org_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
-    inviter_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    org_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True)
+    inviter_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     token = Column(String, unique=True, index=True, nullable=False)
     role = Column(String, default="member") # project_manager, member, viewer
     status = Column(Enum(InvitationStatus), default=InvitationStatus.pending)

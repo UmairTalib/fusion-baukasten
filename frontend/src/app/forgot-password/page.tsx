@@ -42,10 +42,14 @@ export default function ForgotPasswordPage() {
 
 
   return (
-    <div className="bg-workspace-bg min-h-screen flex items-center justify-center p-6 selection:bg-primary-fixed selection:text-on-primary-fixed">
-      <div className="w-full max-w-md">
+    <div className="bg-surface-bright min-h-screen flex items-center justify-center p-6 selection:bg-primary-fixed selection:text-on-primary-fixed relative overflow-hidden">
+      {/* Atmospheric blobs */}
+      <div className="absolute top-[-200px] right-[-200px] w-[600px] h-[600px] rounded-full blur-[120px] opacity-20 pointer-events-none" style={{ background: "linear-gradient(135deg, #5c3be0, #4478e8)" }} />
+      <div className="absolute bottom-[-200px] left-[-200px] w-[500px] h-[500px] bg-tertiary-fixed rounded-full blur-[100px] opacity-30 pointer-events-none" />
+
+      <div className="w-full max-w-[448px] relative z-10">
         {/* Main Card Canvas */}
-        <div className="bg-surface rounded-xl shadow-[0_14px_36px_rgba(45,55,95,0.08)] border border-outline-variant p-10 overflow-hidden relative">
+        <div className="bg-surface/90 backdrop-blur-md rounded-2xl shadow-[0_14px_36px_rgba(45,55,95,0.12)] border border-white p-10 overflow-hidden relative">
           
           {/* Branding Area */}
           <div className="flex items-center gap-3 mb-12 relative z-10">

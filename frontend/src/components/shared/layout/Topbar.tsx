@@ -18,13 +18,14 @@ export default function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu?: () => 
   const [session, setSession] = useState<UserSession | null>(null);
 
   useEffect(() => {
-    // Fetch the current user session from the backend
     const fetchSession = async () => {
       try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
         const res = await fetch("http://localhost:8000/api/v1/auth/session", {
+          headers: { "Authorization": `Bearer ${token}` },
           credentials: "include"
         });
-
         if (res.ok) {
           const data = await res.json();
           setSession(data);
@@ -33,7 +34,6 @@ export default function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu?: () => 
         console.error("Failed to fetch session", error);
       }
     };
-
     fetchSession();
   }, []);
 
@@ -82,7 +82,13 @@ export default function Topbar({ onOpenMobileMenu }: { onOpenMobileMenu?: () => 
       <div className="flex items-center gap-6">
         {/* Role Badge */}
         {session && (
-          <span className="hidden md:inline-flex items-center px-3 py-1 rounded-full bg-surface-container border border-line text-[11px] font-normal text-[#2d375b]">
+          <span className={`hidden md:inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${
+            session.system_role === 'project_manager'
+              ? 'bg-primary/10 text-primary border border-primary/20'
+              : session.system_role === 'team_member'
+              ? 'bg-tertiary/10 text-tertiary border border-tertiary/20'
+              : 'bg-surface-container text-outline border border-line'
+          }`}>
             {displayRole}
           </span>
         )}

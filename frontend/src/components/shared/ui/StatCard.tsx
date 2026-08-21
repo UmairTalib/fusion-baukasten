@@ -32,17 +32,17 @@ export default function StatCard({
   }
 
   return (
-    <div className="bg-surface rounded-lg p-[18px] shadow-sm border border-line flex flex-col justify-between" style={{ boxShadow: "0 14px 36px rgba(45, 55, 95, 0.08)" }}>
+    <div className="bg-surface/80 backdrop-blur-md rounded-2xl p-[18px] border border-white shadow-[0_14px_36px_rgba(45,55,95,0.08)] flex flex-col justify-between transition-transform duration-300 hover:-translate-y-1">
       <div className="flex justify-between items-start mb-4 gap-2">
-        <h3 className="text-[12px] font-extrabold text-[#2d375b] uppercase tracking-wider break-words flex-1">
+        <h3 className="text-label-bold text-on-surface-variant uppercase tracking-wider break-words flex-1">
           {title}
         </h3>
-        <div className="w-8 h-8 rounded bg-[#f4f1ff] flex items-center justify-center text-primary shrink-0">
-          <span className="material-symbols-outlined text-[20px]">{icon}</span>
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+          <span className="material-symbols-outlined text-[24px]">{icon}</span>
         </div>
       </div>
       <div>
-        <p className="text-[32px] font-bold text-on-surface mb-2">{value}</p>
+        <p className="text-h1 text-on-surface mb-2 font-black">{value}</p>
         <div className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium ${trendColorClass}`}>
           {trendIcon && <span className="material-symbols-outlined text-[12px]">{trendIcon}</span>}
           {trendText}

@@ -42,7 +42,7 @@ function VerifyEmailContent() {
 
   return (
     <div className="min-h-screen flex items-center justify-center antialiased selection:bg-primary-fixed selection:text-on-primary-fixed p-4 sm:p-8">
-      <div className="w-full max-w-md mx-auto flex flex-col justify-center text-center">
+      <div className="w-full max-w-[448px] mx-auto flex flex-col justify-center text-center">
         {status === "loading" && (
           <div className="mb-8 flex flex-col items-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-6"></div>
@@ -68,7 +68,8 @@ function VerifyEmailContent() {
             </p>
             <Link
               href="/login"
-              className="btn-primary w-full py-3 mt-8 text-label-caps uppercase tracking-wide flex justify-center items-center gap-2 shadow-lg"
+              className="w-full py-3 mt-8 bg-primary text-white rounded-lg text-label-caps hover:bg-primary-container transition-colors shadow-lg uppercase tracking-wide flex justify-center items-center gap-2"
+              style={{ background: "linear-gradient(90deg, #4414c9 0%, #5243d7 100%)" }}
             >
               Zum Login
               <span className="material-symbols-outlined text-[18px]">
@@ -91,7 +92,8 @@ function VerifyEmailContent() {
             </p>
             <Link
               href="/login"
-              className="btn-primary w-full py-3 mt-8 text-label-caps uppercase tracking-wide flex justify-center items-center gap-2 shadow-lg"
+              className="w-full py-3 mt-8 bg-primary text-white rounded-lg text-label-caps hover:bg-primary-container transition-colors shadow-lg uppercase tracking-wide flex justify-center items-center gap-2"
+              style={{ background: "linear-gradient(90deg, #4414c9 0%, #5243d7 100%)" }}
             >
               Zurück zum Login
             </Link>

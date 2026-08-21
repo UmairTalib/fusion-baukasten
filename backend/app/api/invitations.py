@@ -3,15 +3,15 @@ from sqlalchemy.orm import Session
 from app.api import deps
 from app.models.domain1_stammdaten import User, Invitation, InvitationStatus, Organization, Membership
 from app.schemas.invitation import InvitationCreate, InvitationResponse, InvitationVerifyResponse
+from app.core.config import settings
 import uuid
 import resend
-import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 router = APIRouter()
 
 # ensure resend api key is set
-resend.api_key = os.getenv("RESEND_API_KEY")
+resend.api_key = settings.RESEND_API_KEY
 
 @router.post("/", response_model=InvitationResponse)
 def create_invitation(
@@ -19,7 +19,8 @@ def create_invitation(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
 ):
-    if "project_manager" not in str(current_user.system_role):
+    from app.models.domain1_stammdaten import SystemRole
+    if current_user.system_role != SystemRole.project_manager:
         raise HTTPException(status_code=403, detail="Nur Projektmanager können Einladungen versenden.")
 
     # Get the PM's organization
@@ -29,7 +30,7 @@ def create_invitation(
 
     org = db.query(Organization).filter(Organization.id == membership.org_id).first()
 
-    # Create the invitation
+    # Create the invitation (Fix C5: Timezone-aware datetime)
     token = str(uuid.uuid4())
     invitation = Invitation(
         email=invite_in.email.lower(),
@@ -37,7 +38,7 @@ def create_invitation(
         inviter_id=current_user.id,
         token=token,
         role=invite_in.role,
-        expires_at=datetime.utcnow() + timedelta(days=7)
+        expires_at=datetime.now(timezone.utc) + timedelta(days=7)
     )
     db.add(invitation)
     db.commit()
@@ -62,11 +63,9 @@ def create_invitation(
                 "subject": f"Einladung zum Team {org.name}",
                 "html": html_content
             })
-        else:
-            print(f"DEBUG: Resend API key missing. Would have sent email to {invitation.email} with token {token}")
     except Exception as e:
-        print(f"Error sending email via Resend: {e}")
-        # Not throwing exception so we can test without real email if api key fails
+        import logging
+        logging.error(f"Error sending email via Resend: {e}")
 
     return invitation
 
@@ -80,7 +79,7 @@ def verify_invitation(token: str, db: Session = Depends(deps.get_db)):
     if not invitation:
         raise HTTPException(status_code=404, detail="Einladung nicht gefunden oder bereits verwendet.")
         
-    if invitation.expires_at and invitation.expires_at < datetime.utcnow():
+    if invitation.expires_at and invitation.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="Einladung ist abgelaufen.")
         
     org = db.query(Organization).filter(Organization.id == invitation.org_id).first()
@@ -100,21 +99,27 @@ def get_team(
     if not membership:
         return []
     
-    # Get all active members in the org
-    memberships = db.query(Membership).filter(Membership.org_id == membership.org_id, Membership.is_active == True).all()
+    # Get all active members in the org efficiently (Fix H1: joinedload to prevent N+1 query)
+    from sqlalchemy.orm import joinedload
+    memberships = db.query(Membership).options(joinedload(Membership.user)).filter(
+        Membership.org_id == membership.org_id, 
+        Membership.is_active == True
+    ).all()
     
     team = []
     for m in memberships:
-        u = db.query(User).filter(User.id == m.user_id).first()
+        u = m.user
         if u:
             # Generate initials
-            initials = f"{u.first_name[0] if u.first_name else ''}{u.last_name[0] if u.last_name else ''}".strip().upper()
+            first = u.first_name[0] if u.first_name else ''
+            last = u.last_name[0] if u.last_name else ''
+            initials = f"{first}{last}".strip().upper()
             if not initials:
                 initials = u.email[0].upper()
             
             team.append({
                 "id": str(u.id),
-                "name": f"{u.first_name} {u.last_name}".strip() or "Unbenannt",
+                "name": f"{u.first_name} {u.last_name}".strip() if u.first_name or u.last_name else "Unbenannt",
                 "email": u.email,
                 "role": u.system_role.value if hasattr(u.system_role, 'value') else u.system_role,
                 "initials": initials

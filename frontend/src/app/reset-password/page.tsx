@@ -198,9 +198,13 @@ export default function ResetPasswordPage() {
 
 
   return (
-    <div className="bg-workspace-bg min-h-screen flex items-center justify-center p-6 selection:bg-primary-fixed selection:text-on-primary-fixed">
-      <main className="w-full max-w-[448px]">
-        <div className="bg-surface rounded-xl shadow-[0_14px_36px_rgba(45,55,95,0.08)] border border-outline-variant p-8 md:p-10 flex flex-col gap-8 relative overflow-hidden">
+    <div className="bg-surface-bright min-h-screen flex items-center justify-center p-6 selection:bg-primary-fixed selection:text-on-primary-fixed relative overflow-hidden">
+      {/* Atmospheric blobs */}
+      <div className="absolute top-[-200px] right-[-200px] w-[600px] h-[600px] rounded-full blur-[120px] opacity-20 pointer-events-none" style={{ background: "linear-gradient(135deg, #5c3be0, #4478e8)" }} />
+      <div className="absolute bottom-[-200px] left-[-200px] w-[500px] h-[500px] bg-tertiary-fixed rounded-full blur-[100px] opacity-30 pointer-events-none" />
+
+      <main className="w-full max-w-[448px] relative z-10">
+        <div className="bg-surface/90 backdrop-blur-md rounded-2xl shadow-[0_14px_36px_rgba(45,55,95,0.12)] border border-white p-8 md:p-10 flex flex-col gap-8 relative overflow-hidden">
           
           {/* Branding Header */}
           <div className="flex items-center gap-3 relative z-10">

@@ -187,7 +187,7 @@ function LoginForm() {
       {/* Role Selection Modal */}
       {showRoleModal && mounted && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-md">
-          <div className="bg-surface p-8 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-outline-variant w-full max-w-md mx-4 z-[10000] relative">
+          <div className="bg-surface p-8 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-outline-variant w-full max-w-[448px] mx-4 z-[10000] relative">
             <h2 className="text-page-title mb-2 text-on-surface">Ein letzter Schritt!</h2>
             <p className="text-body-lg text-on-surface-variant mb-6">Bitte wählen Sie Ihre Rolle aus, um fortzufahren.</p>
             
@@ -485,7 +485,7 @@ export default function LoginPage() {
           <h2 className="text-page-title text-text-primary mb-2 drop-shadow-sm">
             Planung neu gedacht.
           </h2>
-          <p className="text-body-lg text-on-surface-variant max-w-md mx-auto drop-shadow-sm">
+          <p className="text-body-lg text-on-surface-variant max-w-[448px] mx-auto drop-shadow-sm">
             Nutzen Sie die Kraft unserer KI-Agenten, um komplexe
             Partizipationsprozesse effizienter und inklusiver zu gestalten.
           </p>

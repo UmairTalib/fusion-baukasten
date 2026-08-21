@@ -6,9 +6,12 @@ import Link from "next/link";
 export default function VerifyEmailNoticePage() {
   return (
     <div className="min-h-screen flex items-center justify-center antialiased selection:bg-primary-fixed selection:text-on-primary-fixed p-4 sm:p-8">
-      <div className="w-full max-w-md mx-auto flex flex-col justify-center text-center">
+      <div className="w-full max-w-[448px] mx-auto flex flex-col justify-center text-center">
         <div className="mb-8 flex flex-col items-center">
-          <div className="brand-box mb-6">
+          <div 
+            className="mb-6 w-16 h-16 text-white flex items-center justify-center rounded-2xl font-bold text-3xl leading-none"
+            style={{ background: "linear-gradient(135deg, #5c3be0 0%, #3f2bc4 100%)" }}
+          >
             <span className="material-symbols-outlined text-[32px]">mail</span>
           </div>
           <h2 className="text-page-title text-text-primary mt-4">
@@ -21,7 +24,8 @@ export default function VerifyEmailNoticePage() {
 
         <Link
           href="/login"
-          className="btn-primary w-full py-3 mt-4 text-label-caps uppercase tracking-wide flex justify-center items-center gap-2 shadow-lg"
+          className="w-full py-3 mt-8 bg-primary text-white rounded-lg text-label-caps hover:bg-primary-container transition-colors shadow-lg uppercase tracking-wide flex justify-center items-center gap-2"
+          style={{ background: "linear-gradient(90deg, #4414c9 0%, #5243d7 100%)" }}
         >
           Zum Login
           <span className="material-symbols-outlined text-[18px]">

@@ -1,49 +1,38 @@
 "use client";
 
-import StatCard from "@/components/shared/ui/StatCard";
+import React from "react";
+import ClientKPIs from "@/components/features/client-dashboard/ClientKPIs";
+import ClientMilestones from "@/components/features/client-dashboard/ClientMilestones";
+import ClientDocuments from "@/components/features/client-dashboard/ClientDocuments";
 
 export default function ClientDashboard() {
   return (
-    <div>
-      {/* KPI Cards Row (Bento/Grid Style) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[18px] mb-8">
-        <StatCard 
-          title="Projektstatus" 
-          value="Aktiv" 
-          icon="autorenew" 
-          trendText="Phase 2 von 5" 
-          trendIcon="info" 
-          trendType="neutral" 
-        />
-        <StatCard 
-          title="Neue Nachrichten" 
-          value="2" 
-          icon="mail" 
-          trendText="Ungelesen" 
-          trendIcon="warning" 
-          trendType="negative" 
-        />
-        <StatCard 
-          title="Letztes Update" 
-          value="Gestern" 
-          icon="update" 
-          trendText="Projektmanager" 
-          trendIcon="person" 
-          trendType="neutral" 
-        />
-        <StatCard 
-          title="Fortschritt" 
-          value="45%" 
-          icon="incomplete_circle" 
-          trendText="Im Zeitplan" 
-          trendIcon="check_circle" 
-          trendType="positive" 
-        />
+    <div className="max-w-[1440px] mx-auto px-4 md:px-[28px] py-8 md:py-[32px]">
+      
+      {/* Page Header */}
+      <div className="mb-8 md:mb-[32px]">
+        <h1 className="font-h1 text-[30px] font-bold tracking-tight text-on-surface mb-3 md:mb-[12px]">
+          Projekt-Dashboard: Klimakonzept Siegen
+        </h1>
+        <p className="font-body-lg text-[16px] text-on-surface-variant">
+          Ihr aktueller Projektstatus im Überblick
+        </p>
       </div>
 
-      <div className="bg-surface rounded-lg shadow-sm border border-line h-64 p-[18px] flex items-center justify-center text-on-surface-variant text-[14px]" style={{ boxShadow: "0 14px 36px rgba(45, 55, 95, 0.08)" }}>
-        7-Block Status Tracker (Gast/Kunde)
+      {/* KPI Row */}
+      <ClientKPIs />
+
+      {/* Main Layout (Bento Grid) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-[24px]">
+        
+        {/* Left Column: Projekt-Meilensteine */}
+        <ClientMilestones />
+        
+        {/* Right Column: Dokumente & Berichte */}
+        <ClientDocuments />
+
       </div>
+
     </div>
   );
 }

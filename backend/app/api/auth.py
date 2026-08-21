@@ -118,7 +118,7 @@ async def login_access_token(
 
     user = db.query(User).filter(User.email == email).first()
     if not user or not user.hashed_password or not security.verify_password(password, user.hashed_password):
-        raise HTTPException(status_code=400, detail="Ungültige E-Mail-Adresse oder Passwort")
+        raise HTTPException(status_code=401, detail="Ungültige E-Mail-Adresse oder Passwort")
 
     if not user.is_verified:
         raise HTTPException(status_code=403, detail="Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse.")
@@ -179,15 +179,35 @@ def register_user(
 
     existing_user = db.query(User).filter(User.email == email).first()
     if existing_user:
-        raise HTTPException(status_code=400, detail="E-Mail-Adresse ist bereits registriert")
+        raise HTTPException(status_code=409, detail="E-Mail-Adresse ist bereits registriert")
 
     if len(user_in.password) > 72:
         raise HTTPException(status_code=400, detail="Passwort darf maximal 72 Zeichen lang sein.")
 
-    # Map role string to SystemRole enum
+    # Prevent Privilege Escalation (C2):
+    # Verify the invitation *before* creating the user, so we can use its secure role.
+    invitation = None
     role_enum = SystemRole.client
-    if user_in.system_role in SystemRole.__members__:
-        role_enum = SystemRole[user_in.system_role]
+    
+    if user_in.invite_token:
+        from app.models.domain1_stammdaten import Invitation, InvitationStatus
+        invitation = db.query(Invitation).filter(
+            Invitation.token == user_in.invite_token,
+            Invitation.status == InvitationStatus.pending
+        ).first()
+        
+        if not invitation:
+            raise HTTPException(status_code=400, detail="Ungültiger oder abgelaufener Einladungs-Token")
+            
+        # FORCE the role to whatever the Project Manager authorized in the database
+        if invitation.role in SystemRole.__members__:
+            role_enum = SystemRole[invitation.role]
+        else:
+            role_enum = SystemRole.team_member
+    else:
+        # Standard registration: accept requested role (though normally we'd restrict pm creation)
+        if user_in.system_role in SystemRole.__members__:
+            role_enum = SystemRole[user_in.system_role]
 
     new_user = User(
         email=email,
@@ -204,21 +224,16 @@ def register_user(
 
     # Process Invitation token if provided
     verification_required = True
-    if user_in.invite_token:
-        from app.models.domain1_stammdaten import Invitation, InvitationStatus
-        invitation = db.query(Invitation).filter(
-            Invitation.token == user_in.invite_token,
-            Invitation.status == InvitationStatus.pending
-        ).first()
-        if not invitation:
-            raise HTTPException(status_code=400, detail="Ungültiger oder abgelaufener Einladungs-Token")
+    if invitation:
+        from app.models.domain1_stammdaten import InvitationStatus, Membership
         
         # Auto-verify email
         new_user.is_verified = True
         verification_required = False
         
-        # Link user to organization
-        membership = Membership(user_id=new_user.id, org_id=invitation.org_id, org_role="member")
+        # Link user to organization with the proper enum equivalent string or fallback
+        # In a fully refactored system this org_role string would be removed, but we stick to SystemRole
+        membership = Membership(user_id=new_user.id, org_id=invitation.org_id, org_role=role_enum.value)
         db.add(membership)
         
         # Update invitation
@@ -234,14 +249,19 @@ def register_user(
                 db.commit()
                 db.refresh(org)
 
+            from app.models.domain1_stammdaten import Membership
             membership = Membership(user_id=new_user.id, org_id=org.id, org_role="editor")
             db.add(membership)
             db.commit()
 
     if verification_required:
-        # Generate verification token
+        # Generate verification token (C3 Fix: specific token_type)
         access_token_expires = timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
-        token_str = create_access_token(str(new_user.id), expires_delta=access_token_expires)
+        token_str = create_access_token(
+            subject=str(new_user.id), 
+            expires_delta=access_token_expires, 
+            token_type="verify"
+        )
         
         # Send verification email
         from app.core.email import send_verification_email
@@ -254,19 +274,26 @@ def register_user(
 
 
 @router.post("/convert-guest", response_model=Token)
+@limiter.limit("3/minute")
 def convert_guest_to_account(
+    request: Request,
     req: GuestConvertRequest,
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """
     Converts a guest session into a permanent registered account.
-    All projects created under the guest session_id are automatically merged to the new user.
-    Ref: Business_Logic documentation.docx, Section 2.3.
     """
+    import uuid
+    try:
+        # C4 partial fix: ensure session_id is a valid UUID, not a trivially guessable string
+        uuid_obj = uuid.UUID(req.session_id, version=4)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Ungültige Guest-Session")
+
     email = req.email.strip().lower()
     existing_user = db.query(User).filter(User.email == email).first()
     if existing_user:
-        raise HTTPException(status_code=400, detail="E-Mail-Adresse ist bereits registriert")
+        raise HTTPException(status_code=409, detail="E-Mail-Adresse ist bereits registriert")
 
     if len(req.password) > 72:
         raise HTTPException(status_code=400, detail="Passwort darf maximal 72 Zeichen lang sein.")
@@ -321,17 +348,19 @@ def forgot_password(
 ) -> Any:
     """
     Password reset request endpoint. Generates reset token.
-    Ref: Business_Logic documentation.docx.
     """
     email = req.email.strip().lower()
     user = db.query(User).filter(User.email == email).first()
     if user:
         from app.core.email import send_password_reset_email
         reset_token_expires = timedelta(hours=1)
-        token = create_access_token(str(user.id), expires_delta=reset_token_expires)
+        token = create_access_token(
+            subject=str(user.id), 
+            expires_delta=reset_token_expires,
+            token_type="reset"
+        )
         send_password_reset_email(email_to=user.email, token=token)
         
-    # Always return success to prevent email enumeration
     return {"message": "Wenn ein Konto mit dieser E-Mail-Adresse existiert, wurde eine E-Mail gesendet."}
 
 
@@ -353,7 +382,8 @@ def reset_password(
         from jose import jwt, JWTError
         payload = jwt.decode(req.token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
         user_id: str = payload.get("sub")
-        if user_id is None:
+        token_type: str = payload.get("type")
+        if user_id is None or token_type != "reset":
             raise HTTPException(status_code=400, detail="Ungültiger Token")
     except Exception:
         raise HTTPException(status_code=400, detail="Ungültiger Token")
@@ -604,7 +634,8 @@ def verify_email(
         from app.core import security
         payload = jwt.decode(token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
         user_id: str = payload.get("sub")
-        if user_id is None:
+        token_type: str = payload.get("type")
+        if user_id is None or token_type != "verify":
             raise HTTPException(status_code=400, detail="Ungültiger Token")
     except Exception:
         raise HTTPException(status_code=400, detail="Ungültiger Token")

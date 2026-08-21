@@ -62,9 +62,9 @@ class Project(Base):
     # Relationships
     owner = relationship("User", back_populates="projects_owned")
     organization = relationship("Organization")
-    snapshots = relationship("ProjectSnapshot", back_populates="project")
-    tasks = relationship("Task", back_populates="project")
-    milestones = relationship("Milestone", back_populates="project")
+    snapshots = relationship("ProjectSnapshot", back_populates="project", cascade="all, delete-orphan")
+    tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan")
+    milestones = relationship("Milestone", back_populates="project", cascade="all, delete-orphan")
     team_members = relationship("TeamMember", back_populates="project", cascade="all, delete-orphan")
 
 
@@ -77,8 +77,8 @@ class ProjectSnapshot(Base):
     __tablename__ = "project_snapshots"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
-    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     label = Column(String, nullable=False)       # e.g. "After Block D review"
     snapshot_data = Column(JSONB, nullable=False) # Full JSON dump of all answers at this point
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -96,7 +96,7 @@ class SavedTargetAudience(Base):
     __tablename__ = "saved_target_audiences"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String, nullable=False)           # e.g. "Youth in rural NRW"
     profile_data = Column(JSONB, nullable=False)    # Structured audience profile
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -112,7 +112,7 @@ class ProjectTemplate(Base):
     __tablename__ = "project_templates"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String, nullable=False)           # e.g. "Town Hall Meeting"
     description = Column(String)
     template_data = Column(JSONB, nullable=False)   # Pre-filled block answers
@@ -126,8 +126,8 @@ class TeamMember(Base):
     __tablename__ = "team_members"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     team_role = Column(Enum(TeamRole), default=TeamRole.viewer)
     
     project = relationship("Project", back_populates="team_members")
